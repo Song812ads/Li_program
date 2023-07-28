@@ -78,7 +78,7 @@ int main(int argc, char **argv){
     else printf("Socket: %d \n",serverSocketfd);
     bzero (&serveradd, sizeof(serveradd));
     serveradd.sin_family = AF_INET;
-    serveradd.sin_port = htons ( 5385 );
+    serveradd.sin_port = htons ( 6385 );
     serveradd.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bind (serverSocketfd, (struct sockaddr*) &serveradd, sizeof( serveradd))!=0){
         perror("Server bind fail");
@@ -174,9 +174,9 @@ int main(int argc, char **argv){
                 printf("Fail to send file read");  
                 free(buffer);
                 exit(1);
-                }}
+                }
+  
             free(msg);
-
             memset(buffer,'\0',BUFFLEN); 
             if(recv(clientSocketfd,buffer,BUFFLEN,0)<0)
             {
@@ -188,7 +188,7 @@ int main(int argc, char **argv){
                 else {
                     printf("server send all file content");
                 }
-            }
+            }}
             }}
     free(buffer);
     free(path_buffer);
