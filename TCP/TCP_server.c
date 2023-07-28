@@ -165,7 +165,7 @@ int main(int argc, char **argv){
     }
         if (strcmp(buffer,"Ready")==0){
         int t = 0;
-        
+        while (1){
             memset(buffer,'\0',BUFFLEN);
             strcpy(buffer,path_buffer);
             long  size = file_transfer(buffer,t);
@@ -202,15 +202,13 @@ int main(int argc, char **argv){
             // tv.tv_usec = 0;
             // setsockopt(clientSocketfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
             // free(msg);
-        while(1){
+
             memset(buffer,'\0',sizeof(buffer)); 
-            
             if((recv(clientSocketfd,buffer,BUFFLEN,0)<0))
             {
                 perror("Buffer content read failed");
                 exit(1);
             }
-;
             // strcpy(buffer,"FIN");
             if (strcmp("FIN",buffer) == 0){
                 if (size == BUFFLEN) {t++;
@@ -257,9 +255,9 @@ int main(int argc, char **argv){
                         printf("Server finish service. Ready to close\n");
                         
                     }
-                     break;
-            }}}}
-            }}
+                    // break;
+            }}}
+            }}}
     free(buffer);
     free(path_buffer);
     close(clientSocketfd);
