@@ -112,7 +112,7 @@ int main(int argc, char **argv){
         }
     int t =0;
     file_mode mode = FIRST;
-    here:
+    // here:
         if (t>0) mode = AFTER;
         memset(buffer,'\0',BUFFLEN); 
         if(recv(socketfd,buffer,BUFFLEN,0)<0)
@@ -143,7 +143,7 @@ int main(int argc, char **argv){
                 free(buffer);
                 exit(1);
             }
-            if (size == BUFFLEN) {t++; goto here;}
+            if (size == BUFFLEN) {t++; }
             else {
             
                 printf("Client receve all file content: %ld",size);
