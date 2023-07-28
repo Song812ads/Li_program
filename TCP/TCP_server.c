@@ -178,7 +178,6 @@ int main(int argc, char **argv){
   
             free(msg);
             memset(buffer,'\0',BUFFLEN); 
-    
             if(recv(clientSocketfd,buffer,BUFFLEN,0)<0)
             {
                 perror("Buffer content read failed");
