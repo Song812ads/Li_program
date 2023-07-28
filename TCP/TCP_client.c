@@ -26,7 +26,7 @@ void exithandler()
 
 void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
     FILE *fp;
-    if (mode == AFTER) {fp = fopen(file, "ab+"); printf("1");}
+    if (mode == AFTER) {fp = fopen(file, "ab+");}
     else if (mode == FIRST) {fp = fopen(file, "wb+");}
 
     if (fp == NULL){
@@ -37,10 +37,14 @@ void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
     fseek(fp,t*BUFFLEN,SEEK_SET);
     // printf("Size of file: %ld\n",size);
     // while (offset < size){
-    while  (offset<BUFFLEN){
-        size_t readnow = fread(buffer+offset, 1,1, fp);
-        if (readnow == 0) break;
-        else offset ++ ;
+    for (int i =0; i<size;i++){
+        size_t readnow = fwrite(buffer+offset, 1,1 , fp);
+        if (readnow < 0){
+            printf("Write unsuccessful \n");
+            free(buffer);
+            fclose(fp);
+            exit(1);}
+        offset = offset+readnow;
     }
     fclose(fp);
     printf("File write complete \n");
@@ -141,7 +145,8 @@ int main(int argc, char **argv){
             }
             if (size == BUFFLEN) {t++; goto here;}
             else {
-                printf("Client receve all file content");
+            
+                printf("Client receve all file content: %ld",size);
             }
         }
         
