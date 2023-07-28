@@ -132,7 +132,7 @@ int main(int argc, char **argv){
         printf("Buffer: %s\n",buffer);
         printf("Size from server: %ld",size);
         file_mode mode = FIRST;
-        file_transfer(argv[3],buffer,0,size,mode);
+        file_transfer(argv[3],buffer,size,0,mode);
         if (size == BUFFLEN) mode = AFTER;
 
     }
