@@ -159,14 +159,18 @@ int main(int argc, char **argv){
                     perror("Buffer content read failed");
                     exit(1);
                 }  
+                printf("Receiving ACK from server\n");
                 if (strcmp(buffer,"FIN") ==0){
+                    printf("Receiving FIN from server\n");
                     memset(buffer,'\0',BUFFLEN);                   
                     strcpy(buffer,"ACK");
+                    printf("Sending ACK to server\n");
                     if (send(socketfd,buffer,BUFFLEN,0)<0){
                         printf("Fail to send success read file signal");  
                         free(buffer);
                         exit(1);
                     }
+                    printf("Connection close\n");
                 }
         }}
         

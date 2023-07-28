@@ -197,6 +197,7 @@ int main(int argc, char **argv){
                 else {
                     memset(buffer,'\0',BUFFLEN);                   
                     strcpy(buffer,"ACK");
+                    printf("Sending ACK to close communication\n");
                     if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
                         printf("Fail to send success read file signal");  
                         free(buffer);
@@ -205,12 +206,13 @@ int main(int argc, char **argv){
                 
                 sleep(30); 
                     memset(buffer,'\0',BUFFLEN);                   
-                    strcpy(buffer,"FIN  ");
+                    strcpy(buffer,"FIN");
                     if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
                         printf("Fail to send success read file signal");  
                         free(buffer);
                         exit(1);
                     }
+                    printf("Sending FIN to close communication");
                     memset(buffer,'\0',BUFFLEN);                   
                     if(recv(clientSocketfd,buffer,BUFFLEN,0)<0)
                 {
