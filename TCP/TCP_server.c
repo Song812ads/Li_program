@@ -160,6 +160,7 @@ int main(int argc, char **argv){
                 free(buffer);
                 exit(1);
             }
+
             memset(msg,'\0',30);                   
             if(recv(clientSocketfd,msg,30,0)<0)
         {
@@ -173,7 +174,9 @@ int main(int argc, char **argv){
                 printf("Fail to send file read");  
                 free(buffer);
                 exit(1);
-                }
+                }}
+            free(msg);
+
             memset(buffer,'\0',BUFFLEN); 
             if(recv(clientSocketfd,buffer,BUFFLEN,0)<0)
             {
@@ -181,13 +184,11 @@ int main(int argc, char **argv){
                 exit(1);
             }
             if (strcmp(buffer,"Complete") == 0){
-                if (size == BUFFLEN) t++;
+                if (size == BUFFLEN) {t++;}
                 else {
                     printf("server send all file content");
                     break;
                 }
-            }
-            
             }}
             }}
     free(buffer);
