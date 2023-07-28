@@ -146,7 +146,7 @@ int main(int argc, char **argv){
     }
         if (strcmp(buffer,"Ready")==0){
         int t = 0;
-        while(1){
+        // while(1){
             memset(buffer,'\0',BUFFLEN);
             strcpy(buffer,path_buffer);
             long  size = file_transfer(buffer,t);
@@ -186,7 +186,7 @@ int main(int argc, char **argv){
                     printf("server send all file content");
                     exit(1);
                 }
-            }
+            // }
             
             }}
             }}

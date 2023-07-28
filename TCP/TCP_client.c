@@ -108,7 +108,7 @@ int main(int argc, char **argv){
         }
     int t =0;
     file_mode mode = FIRST;
-    while (1){
+    // while (1){
         memset(buffer,'\0',BUFFLEN); 
         if(recv(socketfd,buffer,BUFFLEN,0)<0)
         {
@@ -146,7 +146,7 @@ int main(int argc, char **argv){
             else {
                 printf("Client receve all file content");
                 exit(1);
-            }
+            // }
     }
         }
     else if (strcmp(buffer,"Error")==0){
