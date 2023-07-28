@@ -113,7 +113,7 @@ int main(int argc, char **argv){
     int t =0;
     file_mode mode = FIRST;
     // here:
-    // while (1){
+     while (1){
         if (t>0) mode = AFTER;
         memset(buffer,'\0',BUFFLEN); 
         if(recv(socketfd,buffer,BUFFLEN,0)<0)
@@ -176,7 +176,8 @@ int main(int argc, char **argv){
                     printf("Read total file size: %ld\n",size);
                     printf("Connection close\n");
                 }
-        }}
+                break;
+        }}}
         
     else if (strcmp(buffer,"Error")==0){
         printf("%s download fail \n",argv[3]);

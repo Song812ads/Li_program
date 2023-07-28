@@ -202,10 +202,10 @@ int main(int argc, char **argv){
             // tv.tv_usec = 0;
             // setsockopt(clientSocketfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
             // free(msg);
-
+        while(1){
             memset(buffer,'\0',sizeof(buffer)); 
-            int a;
-            if(a = (recv(clientSocketfd,buffer,BUFFLEN,0)<0))
+            
+            if((recv(clientSocketfd,buffer,BUFFLEN,0)<0))
             {
                 perror("Buffer content read failed");
                 exit(1);
@@ -257,8 +257,8 @@ int main(int argc, char **argv){
                         printf("Server finish service. Ready to close\n");
                         
                     }
-                    // break;
-            }}}
+                     break;
+            }}}}
             }}
     free(buffer);
     free(path_buffer);
