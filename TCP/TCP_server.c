@@ -22,34 +22,29 @@ void exithandler()
     exit(EXIT_FAILURE);
 }
 
-long file_transfer(char* buffer){
+long file_transfer(char* buffer, int t){
     FILE *fp = fopen(buffer, "rb" );
     if (fp == NULL){
         perror("Error reading file");
         exit(1);
     }
     // struct stat st;
-    fseek(fp,0,SEEK_END);
-    long size = ftell(fp);
-    printf("%ld \n",size);
-    fseek(fp,0,SEEK_SET);
-    memset(buffer,'\0',BUFFLEN);
+    fseek(fp,(t)*BUFFLEN,SEEK_SET);
+    // long size = ftell(fp);
+    // printf("%ld \n",size);
+    // fseek(fp,0,SEEK_SET);
+    // memset(buffer,'\0',BUFFLEN);
     long offset = 0;
-    while (offset!=size){
+    while  (offset<BUFFLEN){
         size_t readnow = fread(buffer+offset, 1,1, fp);
-        if (readnow == 0){
-            printf("Read unsuccessful \n");
-            free(buffer);
-            fclose(fp);
-            exit(1);
-    }
-            offset ++ ;
+        if (readnow == 0) break;
+        else offset ++ ;
     }
     // printf("again: %s",buffer);
     
     fclose(fp);
-    printf("Socket read complete ready to send \n");
-    return size;
+    printf("Socket read complete part %d ready to send \n",t);
+    return offset;
 }
 
 int checkfile(unsigned char* buffer){
@@ -83,7 +78,7 @@ int main(int argc, char **argv){
     else printf("Socket: %d \n",serverSocketfd);
     bzero (&serveradd, sizeof(serveradd));
     serveradd.sin_family = AF_INET;
-    serveradd.sin_port = htons ( 4444 );
+    serveradd.sin_port = htons ( 5555 );
     serveradd.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bind (serverSocketfd, (struct sockaddr*) &serveradd, sizeof( serveradd))!=0){
         perror("Server bind fail");
@@ -150,9 +145,11 @@ int main(int argc, char **argv){
         exit(1);
     }
         if (strcmp(buffer,"Ready")==0){
+        int t = 0;
         memset(buffer,'\0',BUFFLEN);
         strcpy(buffer,path_buffer);
-        long  size = file_transfer(buffer);
+        long  size = file_transfer(buffer,t);
+        if (size == BUFFLEN) t++;
         char *msg = malloc(30*sizeof(char));
         sprintf(msg,"%ld",size);
         printf("Size from server: %ld \n",size);

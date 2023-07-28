@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #define BUFFLEN 5000
+typedef enum {FIRST, AFTER} file_mode;
 
 void pipebroke()
 {
@@ -22,13 +23,18 @@ void exithandler()
     exit(EXIT_FAILURE);
 }
 
-void file_transfer(char* file, char* buffer, long size){
-    FILE *fp = fopen(file, "wb+");
+
+void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
+    FILE *fp;
+    if (mode == AFTER) {fp = fopen(file, "ab+"); printf("1");}
+    else if (mode == FIRST) {fp = fopen(file, "wb+"); printf("2");}
+    else printf("Co cl");
     if (fp == NULL){
         perror("Error reading file\n");
         exit(1);
     }
     long offset = 0;
+    fseek(fp,t*BUFFLEN,SEEK_SET);
     // printf("Size of file: %ld\n",size);
     // while (offset < size){
     for (int i =0; i<size;i++){
@@ -104,6 +110,7 @@ int main(int argc, char **argv){
             free(buffer);
             exit(1);
         }
+    int t =0;
     memset(buffer,'\0',BUFFLEN); 
     if(recv(socketfd,buffer,BUFFLEN,0)<0)
     {
@@ -126,7 +133,9 @@ int main(int argc, char **argv){
         }
         printf("Buffer: %s\n",buffer);
         printf("Size from server: %ld",size);
-        file_transfer(argv[3],buffer,size);
+        file_mode mode = FIRST;
+        file_transfer(argv[3],buffer,t,size,mode);
+        if (size == BUFFLEN) mode = AFTER;
 
     }
     else if (strcmp(buffer,"Error")==0){
