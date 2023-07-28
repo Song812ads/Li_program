@@ -139,6 +139,7 @@ int main(int argc, char **argv){
             file_transfer(argv[3],buffer,size,t,mode);
             memset(buffer,'\0',BUFFLEN);                   
             strcpy(buffer,"FIN");
+            printf("%s\n",buffer);
             if (send(socketfd,buffer,BUFFLEN,0)<0){
                 printf("Fail to send success read file signal");  
                 free(buffer);

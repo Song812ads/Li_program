@@ -183,11 +183,12 @@ int main(int argc, char **argv){
                 perror("Buffer content read failed");
                 exit(1);
             }
-            
+            printf("%s\n",buffer);
             if (strcmp(buffer,"FIN") == 0){
                 if (size == BUFFLEN) {t++;
                     memset(buffer,'\0',BUFFLEN);                   
                     strcpy(buffer,"Again");
+                    printf("Continue sending from server");
                     if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
                         printf("Fail to send success read file signal");  
                         free(buffer);
