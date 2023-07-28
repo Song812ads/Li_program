@@ -108,7 +108,7 @@ int main(int argc, char **argv){
         }
     int t =0;
     file_mode mode = FIRST;
-    while (1){
+    here:
         if (t>0) mode = AFTER;
         memset(buffer,'\0',BUFFLEN); 
         if(recv(socketfd,buffer,BUFFLEN,0)<0)
@@ -139,13 +139,12 @@ int main(int argc, char **argv){
                 free(buffer);
                 exit(1);
             }
-            if (size == BUFFLEN) t++;
+            if (size == BUFFLEN) {t++; goto here;}
             else {
                 printf("Client receve all file content");
-                exit(1);
             }
         }
-        }
+        
     else if (strcmp(buffer,"Error")==0){
         printf("%s download fail \n",argv[3]);
         exit(1);

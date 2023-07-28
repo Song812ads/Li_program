@@ -78,7 +78,7 @@ int main(int argc, char **argv){
     else printf("Socket: %d \n",serverSocketfd);
     bzero (&serveradd, sizeof(serveradd));
     serveradd.sin_family = AF_INET;
-    serveradd.sin_port = htons ( 5585 );
+    serveradd.sin_port = htons ( 5385 );
     serveradd.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bind (serverSocketfd, (struct sockaddr*) &serveradd, sizeof( serveradd))!=0){
         perror("Server bind fail");
@@ -146,7 +146,7 @@ int main(int argc, char **argv){
     }
         if (strcmp(buffer,"Ready")==0){
         int t = 0;
-        while(1){
+        here: 
             memset(buffer,'\0',BUFFLEN);
             strcpy(buffer,path_buffer);
             long  size = file_transfer(buffer,t);
@@ -184,12 +184,11 @@ int main(int argc, char **argv){
                 exit(1);
             }
             if (strcmp(buffer,"Complete") == 0){
-                if (size == BUFFLEN) {t++;}
+                if (size == BUFFLEN) {t++; goto here;}
                 else {
                     printf("server send all file content");
-                    break;
                 }
-            }}
+            }
             }}
     free(buffer);
     free(path_buffer);
