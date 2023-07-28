@@ -206,7 +206,7 @@ int main(int argc, char **argv){
                         exit(1);
                     }
                 
-                sleep(30); 
+                // sleep(30); 
                     memset(buffer,'\0',BUFFLEN);                   
                     strcpy(buffer,"FIN");
                     if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
