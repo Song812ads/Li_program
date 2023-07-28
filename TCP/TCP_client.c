@@ -173,6 +173,7 @@ int main(int argc, char **argv){
                         free(buffer);
                         exit(1);
                     }
+                    printf("Read total file size: %ld\n",size);
                     printf("Connection close\n");
                 }
         }}

@@ -234,7 +234,7 @@ int main(int argc, char **argv){
                         exit(1);
                     }
                 
-                 sleep(30); 
+                 sleep(3); 
                     memset(buffer,'\0',BUFFLEN);                   
                     strcpy(buffer,"FIN");
                     if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
@@ -244,16 +244,17 @@ int main(int argc, char **argv){
                     }
                     printf("Sending FIN to close communication\n");
                     memset(buffer,'\0',BUFFLEN);                   
-                    if(a = (recv(clientSocketfd,buffer,BUFFLEN,0)<0))
+                    if(recv(clientSocketfd,buffer,BUFFLEN,0)<0)
                 {
                     printf(" Knowing the status of the file on server side failed\n");
                     perror("recv failed");
                     exit(1);
                 }
-                printf("%d",a);
+
 
                     if (strcmp(buffer,"ACK")==0){
-                        printf("Server finish service. Ready to close");
+                        
+                        printf("Server finish service. Ready to close\n");
                         
                     }
                     // break;
