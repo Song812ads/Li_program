@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #define BUFFLEN 5000
+typedef enum {FIRST, AFTER} file_mode;
 
 int checkfile(char* buffer){
     if (access(buffer, F_OK) == -1){
@@ -26,43 +27,42 @@ int checkfile(char* buffer){
     }
 }
 
-long file_transfer(char* buffer){
+long file_transfer(char* buffer, int t){
     FILE *fp = fopen(buffer, "rb" );
     if (fp == NULL){
         perror("Error reading file");
         exit(1);
     }
     // struct stat st;
-    fseek(fp,0,SEEK_END);
-    long size = ftell(fp);
-    printf("%ld \n",size);
-    fseek(fp,0,SEEK_SET);
-    memset(buffer,'\0',BUFFLEN);
+    fseek(fp,(t)*BUFFLEN,SEEK_SET);
+    // long size = ftell(fp);
+    // printf("%ld \n",size);
+    // fseek(fp,0,SEEK_SET);
+    // memset(buffer,'\0',BUFFLEN);
     long offset = 0;
-    while (offset!=size){
+    while  (offset<BUFFLEN){
         size_t readnow = fread(buffer+offset, 1,1, fp);
-        if (readnow == 0){
-            printf("Read unsuccessful \n");
-            free(buffer);
-            fclose(fp);
-            exit(1);
-    }
-            offset ++ ;
+        if (readnow == 0) break;
+        else offset ++ ;
     }
     // printf("again: %s",buffer);
     
     fclose(fp);
     printf("Socket read complete ready to send \n");
-    return size;
+    return offset;
 }
 
-void file_transfer1(char* file, char* buffer, int size){
-    FILE *fp = fopen(file, "wb+");
+void file_transfer1(char* file, char* buffer, long size, int t, file_mode mode){
+    FILE *fp;
+    if (mode == AFTER) {fp = fopen(file, "ab+"); printf("1");}
+    else if (mode == FIRST) {fp = fopen(file, "wb+"); printf("2");}
+    else printf("Co cl");
     if (fp == NULL){
         perror("Error reading file\n");
         exit(1);
     }
     long offset = 0;
+    fseek(fp,t*BUFFLEN,SEEK_SET);
     // printf("Size of file: %ld\n",size);
     // while (offset < size){
     for (int i =0; i<size;i++){
@@ -77,12 +77,11 @@ void file_transfer1(char* file, char* buffer, int size){
     fclose(fp);
     printf("File write complete \n");
 }
-
 int main()
 {
    char *buffer = (char* )malloc(BUFFLEN * sizeof(char));
     memset(buffer,'\0', BUFFLEN);
-    strcpy(buffer,"anh.jpeg");
+    strcpy(buffer,"text.txt");
 //    const char *buffer1 = "/home/phuongnam/text.txt";
 //     if (access(buffer,F_OK)==0) printf("Exist");
 //     else printf("No");
@@ -95,8 +94,9 @@ int main()
     memset(buffer,'\0',BUFFLEN);
     strcpy(buffer,path_buffer);
 
-    long size = file_transfer(buffer);
-    file_transfer1("anh.jpeg",buffer, size);
+    long size = file_transfer(buffer, 0);
+    file_mode mode = FIRST;
+    file_transfer1("text.txt",buffer, size,0,mode);
     free(path_buffer);
     free(buffer);
     char msg[123]="12354";

@@ -145,11 +145,10 @@ int main(int argc, char **argv){
         exit(1);
     }
         if (strcmp(buffer,"Ready")==0){
-        int t = 0;
         memset(buffer,'\0',BUFFLEN);
         strcpy(buffer,path_buffer);
-        long  size = file_transfer(buffer,t);
-        if (size == BUFFLEN) t++;
+        long  size = file_transfer(buffer,0);
+        // if (size == BUFFLEN) t++;
         char *msg = malloc(30*sizeof(char));
         sprintf(msg,"%ld",size);
         printf("Size from server: %ld \n",size);
