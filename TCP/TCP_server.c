@@ -12,7 +12,7 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#define BUFFLEN 5000
+#define BUFFLEN 500
 
 void pipebroke()
 {
@@ -173,7 +173,7 @@ int main(int argc, char **argv){
             // if (size == BUFFLEN) t++;
         //    char *msg = malloc(30*sizeof(char));
             sprintf(buffer,"%ld",size);
-            printf("Size from server: %ld \n",size);
+            
             if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
                 printf("Fail to send file read");  
                 free(buffer);
@@ -253,7 +253,7 @@ int main(int argc, char **argv){
 
 
                     if (strcmp(buffer,"ACK")==0){
-                        
+                        printf("Size from server: %ld \n",size);
                         printf("Server finish service. Ready to close\n");
                         
                     }
