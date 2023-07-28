@@ -184,7 +184,7 @@ int main(int argc, char **argv){
                 exit(1);
             }
             printf("%s\n",buffer);
-            if (strcmp(buffer,"FIN") == 0){
+            if (strcmp("FIN",buffer) == 0){
                 if (size == BUFFLEN) {t++;
                     memset(buffer,'\0',BUFFLEN);                   
                     strcpy(buffer,"Again");
