@@ -156,12 +156,13 @@ int main(int argc, char **argv){
                 t++;
             }
             else if (strcmp(buffer,"ACK")==0){
+                printf("Receiving ACK from server\n");
                 if(recv(socketfd,buffer,BUFFLEN,0)<0)
                 {
                     perror("Buffer content read failed");
                     exit(1);
                 }  
-                printf("Receiving ACK from server\n");
+                
                 if (strcmp(buffer,"FIN") ==0){
                     printf("Receiving FIN from server\n");
                     memset(buffer,'\0',BUFFLEN);                   
