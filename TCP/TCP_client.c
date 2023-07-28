@@ -51,6 +51,7 @@ void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
 }
 
 int main(int argc, char **argv){
+    // Thiết lập phương thức nhận dữ liêu và tạo kết nối đến server
     signal(SIGPIPE,pipebroke);
     signal(SIGINT,exithandler);
     int socketfd; 
@@ -94,13 +95,13 @@ int main(int argc, char **argv){
         exit(1);
     }
     
+    // Kiểm tra xem server đã sẵn sàng gửi dữ liệu chưa
     memset(buffer,'\0',BUFFLEN);                   
     if(recv(socketfd,buffer,BUFFLEN,0)<0)
     {
         perror("Checkin failed");
         exit(1);
     }
-
     if (strcmp(buffer,"Success")==0){
         printf("%s ready to download \n",argv[3]);
         memset(buffer,'\0',BUFFLEN);                   
@@ -110,11 +111,12 @@ int main(int argc, char **argv){
             free(buffer);
             exit(1);
         }
-    int t =0;
-    file_mode mode = FIRST;
+    int t =0; // số lần đã chuyển 
+    file_mode mode = FIRST; // mode mở của file
     // here:
      while (1){
         if (t>0) mode = AFTER;
+        // Nhận kích thuốc file từ server
         memset(buffer,'\0',BUFFLEN); 
         if(recv(socketfd,buffer,BUFFLEN,0)<0)
         {
@@ -122,6 +124,7 @@ int main(int argc, char **argv){
             exit(1);
         }
             long size = atol(buffer);
+        // gửi tin hiêu đã nhận kích thươc file
             memset(buffer,'\0',BUFFLEN);                   
             strcpy(buffer,"size");
             if (send(socketfd,buffer,BUFFLEN,0)<0){
@@ -129,6 +132,7 @@ int main(int argc, char **argv){
                 free(buffer);
                 exit(1);
             }
+            // Nhận dữ liệu file từ server
             memset(buffer,'\0',BUFFLEN); 
             if(recv(socketfd,buffer,BUFFLEN,0)<0)
             {
@@ -138,7 +142,8 @@ int main(int argc, char **argv){
             
             file_transfer(argv[3],buffer,size,t,mode);
             memset(buffer,'\0',BUFFLEN);  
-            // sleep(20);                 
+              
+            // Gửi tín hiệu đã hoàn tất đợi nhận từ server đã kết thúc nhận dữ liệu hay sẽ nhận tiếp
             strcpy(buffer,"FIN");
             printf("%s\n",buffer);
             if (send(socketfd,buffer,sizeof(buffer),0)<0){

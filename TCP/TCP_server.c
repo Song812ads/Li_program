@@ -68,6 +68,8 @@ int checkfile(unsigned char* buffer){
 int main(int argc, char **argv){
     signal(SIGPIPE,pipebroke);
     signal(SIGINT,exithandler);
+
+    // Thiêt lập port và các phương thức cơ bản giao tiếp TCP/IP
     int serverSocketfd, clientSocketfd, valread;
     struct sockaddr_in serveradd, clientadd;
     char *buffer = (char* )malloc(BUFFLEN * sizeof(char));
@@ -112,12 +114,10 @@ int main(int argc, char **argv){
         exit(1);
     }
     else printf("Server Accepted\n");
-    //   if( setsockopt (clientSocketfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0 )
-    //     printf( "setsockopt fail\n" );
-    //   if( setsockopt (clientSocketfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv)) < 0 )
-    //     printf( "setsockopt fail\n" ) ;
-
-
+      if( setsockopt (clientSocketfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0 )
+        printf( "setsockopt fail\n" );
+      if( setsockopt (clientSocketfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv)) < 0 )
+        printf( "setsockopt fail\n" ) ;
 
     memset(buffer,'\0', BUFFLEN);
     if (valread=recv(clientSocketfd,buffer,BUFFLEN,0)<0){
@@ -137,6 +137,7 @@ int main(int argc, char **argv){
     strcpy(path_buffer,path);
     strcpy(path_buffer+len,buffer);
 
+    // Kiểm tra khả năng truy cập file:
     if (checkfile(path_buffer)==0){
         printf("Error access file\n");
         memset(buffer,'\0', BUFFLEN);
@@ -163,23 +164,23 @@ int main(int argc, char **argv){
         perror("recv failed");
         exit(1);
     }
+    // Đợi client phản hồi sẵn sàng nhận dữ liệu
         if (strcmp(buffer,"Ready")==0){
-        int t = 0;
+        int t = 0; // ghi lại số lần dẵ chuyển
+
+    // Tạo vòng lặp gửi dữ liệu với từng buffer. VD 1 file 4k3 sẽ gửi bằng 9 lần với 8 lần max 500 byte và 1 lần 300 bytes. 
         while (1){
             memset(buffer,'\0',BUFFLEN);
             strcpy(buffer,path_buffer);
             long  size = file_transfer(buffer,t);
-            
-            // if (size == BUFFLEN) t++;
-        //    char *msg = malloc(30*sizeof(char));
             sprintf(buffer,"%ld",size);
-            
+    // Gửi kích thuốc khi kích thước =500 có thể hiểu là vẫn còn thêm thông tin. client sẽ chỉnh mode mở là append nếu có 1 lần kích thuốc =500.
+    // Dê mode mở bth nếu như k có lần nào 500 byte được chuyển
             if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
                 printf("Fail to send file read");  
                 free(buffer);
                 exit(1);
             }
-
             memset(buffer,'\0',BUFFLEN);                   
             if(recv(clientSocketfd,buffer,BUFFLEN,0)<0)
         {
@@ -194,14 +195,10 @@ int main(int argc, char **argv){
             long  size = file_transfer(buffer,t);
             if ( send(clientSocketfd,buffer,BUFFLEN,0)<0){
                 printf("Fail to send file read");  
-                // free(buffer);
+                free(buffer);
                 exit(1);
                 }
-            // struct timeval tv;
-            // tv.tv_sec = 1;
-            // tv.tv_usec = 0;
-            // setsockopt(clientSocketfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
-            // free(msg);
+
 
             memset(buffer,'\0',sizeof(buffer)); 
             if((recv(clientSocketfd,buffer,BUFFLEN,0)<0))
@@ -209,7 +206,7 @@ int main(int argc, char **argv){
                 perror("Buffer content read failed");
                 exit(1);
             }
-            // strcpy(buffer,"FIN");
+            // Các bước ACK, FIN để kết thúc giao tiếp TCP/IP hoặc là Again để tiếp tục vòng nhận dữ liệu
             if (strcmp("FIN",buffer) == 0){
                 if (size == BUFFLEN) {t++;
                     memset(buffer,'\0',BUFFLEN);                   
@@ -248,14 +245,11 @@ int main(int argc, char **argv){
                     perror("recv failed");
                     exit(1);
                 }
-
-
                     if (strcmp(buffer,"ACK")==0){
-                        printf("Size from server: %ld \n",size);
+                        printf("Size from server: %ld \n",t*BUFFLEN+size);
                         printf("Server finish service. Ready to close\n");
-                        
                     }
-                    // break;
+                     break;
             }}}
             }}}
     free(buffer);
