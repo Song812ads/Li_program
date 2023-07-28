@@ -183,12 +183,47 @@ int main(int argc, char **argv){
                 perror("Buffer content read failed");
                 exit(1);
             }
-            if (strcmp(buffer,"Complete") == 0){
-                if (size == BUFFLEN) {t++;}
-                else {
-                    printf("server send all file content");
+            
+            if (strcmp(buffer,"FIN") == 0){
+                if (size == BUFFLEN) {t++;
+                    memset(buffer,'\0',BUFFLEN);                   
+                    strcpy(buffer,"Again");
+                    if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
+                        printf("Fail to send success read file signal");  
+                        free(buffer);
+                        exit(1);
+                    }
                 }
-            }}
+                else {
+                    memset(buffer,'\0',BUFFLEN);                   
+                    strcpy(buffer,"ACK");
+                    if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
+                        printf("Fail to send success read file signal");  
+                        free(buffer);
+                        exit(1);
+                    }
+                
+                sleep(30); 
+                    memset(buffer,'\0',BUFFLEN);                   
+                    strcpy(buffer,"FIN  ");
+                    if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
+                        printf("Fail to send success read file signal");  
+                        free(buffer);
+                        exit(1);
+                    }
+                    memset(buffer,'\0',BUFFLEN);                   
+                    if(recv(clientSocketfd,buffer,BUFFLEN,0)<0)
+                {
+                    printf(" Knowing the status of the file on server side failed\n");
+                    perror("recv failed");
+                    exit(1);
+                }
+
+                    if (strcmp(buffer,"ACK")==0){
+                        printf("Server finish service. Ready to close");
+                    }
+                    // break;
+            }}}
             }}
     free(buffer);
     free(path_buffer);

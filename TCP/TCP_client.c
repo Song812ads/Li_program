@@ -138,17 +138,36 @@ int main(int argc, char **argv){
             
             file_transfer(argv[3],buffer,size,t,mode);
             memset(buffer,'\0',BUFFLEN);                   
-            strcpy(buffer,"Complete");
+            strcpy(buffer,"FIN");
             if (send(socketfd,buffer,BUFFLEN,0)<0){
                 printf("Fail to send success read file signal");  
                 free(buffer);
                 exit(1);
             }
-            if (size == BUFFLEN) {t++; printf("WTF"); }
-            else {
-            
-                printf("Client receve all file content: %ld",size);
-            // }
+            memset(buffer,'\0',BUFFLEN); 
+            if(recv(socketfd,buffer,BUFFLEN,0)<0)
+            {
+                perror("Buffer content read failed");
+                exit(1);
+            }     
+            if (strcmp(buffer,"Again")==0){
+                t++;
+            }
+            else if (strcmp(buffer,"ACK")==0){
+                if(recv(socketfd,buffer,BUFFLEN,0)<0)
+                {
+                    perror("Buffer content read failed");
+                    exit(1);
+                }  
+                if (strcmp(buffer,"FIN") ==0){
+                    memset(buffer,'\0',BUFFLEN);                   
+                    strcpy(buffer,"ACK");
+                    if (send(socketfd,buffer,BUFFLEN,0)<0){
+                        printf("Fail to send success read file signal");  
+                        free(buffer);
+                        exit(1);
+                    }
+                }
         }}
         
     else if (strcmp(buffer,"Error")==0){
