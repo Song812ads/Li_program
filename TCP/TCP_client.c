@@ -35,14 +35,10 @@ void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
     fseek(fp,t*BUFFLEN,SEEK_SET);
     // printf("Size of file: %ld\n",size);
     // while (offset < size){
-    for (int i =0; i<size;i++){
-        size_t readnow = fwrite(buffer+offset, 1,1 , fp);
-        if (readnow < 0){
-            printf("Write unsuccessful \n");
-            free(buffer);
-            fclose(fp);
-            exit(1);}
-        offset = offset+readnow;
+    while  (offset<BUFFLEN){
+        size_t readnow = fread(buffer+offset, 1,1, fp);
+        if (readnow == 0) break;
+        else offset ++ ;
     }
     fclose(fp);
     printf("File write complete \n");
