@@ -25,7 +25,9 @@ void exithandler()
 
 
 void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
-    FILE *fp = fopen(file, "wb+"); 
+    FILE *fp;
+    if (mode == AFTER) {fp = fopen(file, "ab+"); printf("1");}
+    else if (mode == FIRST) {fp = fopen(file, "wb+");}
 
     if (fp == NULL){
         perror("Error reading file\n");
@@ -105,33 +107,48 @@ int main(int argc, char **argv){
             exit(1);
         }
     int t =0;
-    memset(buffer,'\0',BUFFLEN); 
-    if(recv(socketfd,buffer,BUFFLEN,0)<0)
-    {
-        perror("Buffer size read failed");
-        exit(1);
-    }
-        long size = atol(buffer);
-        memset(buffer,'\0',BUFFLEN);                   
-        strcpy(buffer,"size");
-        if (send(socketfd,buffer,BUFFLEN,0)<0){
-            printf("Fail to send success read file signal");  
-            free(buffer);
-            exit(1);
-        }
+    file_mode mode = FIRST;
+    while (1){
         memset(buffer,'\0',BUFFLEN); 
         if(recv(socketfd,buffer,BUFFLEN,0)<0)
         {
-            perror("Buffer content read failed");
+            perror("Buffer size read failed");
             exit(1);
         }
-        printf("Buffer: %s\n",buffer);
-        printf("Size from server: %ld",size);
-        file_mode mode = FIRST;
-        file_transfer(argv[3],buffer,size,0,mode);
-        if (size == BUFFLEN) mode = AFTER;
-
+            long size = atol(buffer);
+            memset(buffer,'\0',BUFFLEN);                   
+            strcpy(buffer,"size");
+            if (send(socketfd,buffer,BUFFLEN,0)<0){
+                printf("Fail to send success read file signal");  
+                free(buffer);
+                exit(1);
+            }
+            memset(buffer,'\0',BUFFLEN); 
+            if(recv(socketfd,buffer,BUFFLEN,0)<0)
+            {
+                perror("Buffer content read failed");
+                exit(1);
+            }
+            printf("Buffer: %s\n",buffer);
+            printf("Size from server: %ld",size);
+            
+            file_transfer(argv[3],buffer,size,t,mode);
+            memset(buffer,'\0',BUFFLEN);                   
+            strcpy(buffer,"Complete");
+            if (send(socketfd,buffer,BUFFLEN,0)<0){
+                printf("Fail to send success read file signal");  
+                free(buffer);
+                exit(1);
+            }
+            if (size == BUFFLEN) {
+                mode = AFTER;
+                t++;}
+            else {
+                printf("Client receve all file content");
+                exit(1);
+            }
     }
+        }
     else if (strcmp(buffer,"Error")==0){
         printf("%s download fail \n",argv[3]);
         exit(1);
