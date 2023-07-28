@@ -140,13 +140,12 @@ int main(int argc, char **argv){
             memset(buffer,'\0',BUFFLEN);  
             // sleep(20);                 
             strcpy(buffer,"FIN");
-            
+            printf("%s\n",buffer);
             if (send(socketfd,buffer,sizeof(buffer),0)<0){
                 printf("Fail to send success read file signal");  
                 free(buffer);
                 exit(1);
             }
-            printf("%s\n",buffer);
             memset(buffer,'\0',BUFFLEN); 
             if(recv(socketfd,buffer,BUFFLEN,0)<0)
             {

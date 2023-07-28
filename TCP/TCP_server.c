@@ -9,6 +9,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <sys/time.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 #define BUFFLEN 5000
 
 void pipebroke()
@@ -69,17 +72,25 @@ int main(int argc, char **argv){
     struct sockaddr_in serveradd, clientadd;
     char *buffer = (char* )malloc(BUFFLEN * sizeof(char));
     int clientlength = sizeof(clientadd);
+    struct timeval tv;
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
 
     // Socket create:
     if ((serverSocketfd = socket(AF_INET, SOCK_STREAM,0))<0){
         perror("Socket create fail");
         exit(1);
     }
+
     else printf("Socket: %d \n",serverSocketfd);
+
+
     bzero (&serveradd, sizeof(serveradd));
     serveradd.sin_family = AF_INET;
     serveradd.sin_port = htons ( 6385 );
     serveradd.sin_addr.s_addr = htonl(INADDR_ANY);
+
+
     if (bind (serverSocketfd, (struct sockaddr*) &serveradd, sizeof( serveradd))!=0){
         perror("Server bind fail");
         close(serverSocketfd);
@@ -94,11 +105,19 @@ int main(int argc, char **argv){
     }
     else printf("Listening...\n");
     bzero(&clientadd,sizeof(clientadd));
+
+
     if ((clientSocketfd = accept(serverSocketfd, (struct sockaddr*) &clientadd, &clientlength))==-1){
         printf("Server accept fail");
         exit(1);
     }
     else printf("Server Accepted\n");
+    //   if( setsockopt (clientSocketfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0 )
+    //     printf( "setsockopt fail\n" );
+    //   if( setsockopt (clientSocketfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv)) < 0 )
+    //     printf( "setsockopt fail\n" ) ;
+
+
 
     memset(buffer,'\0', BUFFLEN);
     if (valread=recv(clientSocketfd,buffer,BUFFLEN,0)<0){
@@ -152,38 +171,48 @@ int main(int argc, char **argv){
             long  size = file_transfer(buffer,t);
             
             // if (size == BUFFLEN) t++;
-            char *msg = malloc(30*sizeof(char));
-            sprintf(msg,"%ld",size);
+        //    char *msg = malloc(30*sizeof(char));
+            sprintf(buffer,"%ld",size);
             printf("Size from server: %ld \n",size);
-            if (send(clientSocketfd,msg,strlen(msg),0)<0){
+            if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
                 printf("Fail to send file read");  
                 free(buffer);
                 exit(1);
             }
 
-            memset(msg,'\0',30);                   
-            if(recv(clientSocketfd,msg,30,0)<0)
+            memset(buffer,'\0',BUFFLEN);                   
+            if(recv(clientSocketfd,buffer,BUFFLEN,0)<0)
         {
             printf(" Knowing the status of the file on server side failed\n");
             perror("recv failed");
             exit(1);
         }
 
-            if (strcmp(msg,"size") == 0){
-            if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
+            if (strcmp(buffer,"size") == 0){
+            memset(buffer,'\0',BUFFLEN);
+            strcpy(buffer,path_buffer);
+            long  size = file_transfer(buffer,t);
+            if ( send(clientSocketfd,buffer,BUFFLEN,0)<0){
                 printf("Fail to send file read");  
-                free(buffer);
+                // free(buffer);
                 exit(1);
                 }
-  
-            free(msg);
-            memset(buffer,'\0',BUFFLEN); 
-            if(recv(clientSocketfd,buffer,BUFFLEN,0)<0)
+            // struct timeval tv;
+            // tv.tv_sec = 1;
+            // tv.tv_usec = 0;
+            // setsockopt(clientSocketfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+            // free(msg);
+
+            memset(buffer,'\0',sizeof(buffer)); 
+            int a;
+            if(a = (recv(clientSocketfd,buffer,BUFFLEN,0)<0))
             {
                 perror("Buffer content read failed");
                 exit(1);
             }
+;
             printf("%s\n",buffer);
+            // strcpy(buffer,"FIN");
             if (strcmp("FIN",buffer) == 0){
                 if (size == BUFFLEN) {t++;
                     memset(buffer,'\0',BUFFLEN);                   
@@ -198,6 +227,7 @@ int main(int argc, char **argv){
                 else {
                     memset(buffer,'\0',BUFFLEN);                   
                     strcpy(buffer,"ACK");
+
                     printf("Sending ACK to close communication\n");
                     if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
                         printf("Fail to send success read file signal");  
@@ -213,17 +243,19 @@ int main(int argc, char **argv){
                         free(buffer);
                         exit(1);
                     }
-                    printf("Sending FIN to close communication");
+                    printf("Sending FIN to close communication\n");
                     memset(buffer,'\0',BUFFLEN);                   
-                    if(recv(clientSocketfd,buffer,BUFFLEN,0)<0)
+                    if(a = (recv(clientSocketfd,buffer,BUFFLEN,0)<0))
                 {
                     printf(" Knowing the status of the file on server side failed\n");
                     perror("recv failed");
                     exit(1);
                 }
+                printf("%d",a);
 
                     if (strcmp(buffer,"ACK")==0){
                         printf("Server finish service. Ready to close");
+                        
                     }
                     // break;
             }}}
