@@ -25,10 +25,8 @@ void exithandler()
 
 
 void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
-    FILE *fp;
-    if (mode == AFTER) {fp = fopen(file, "ab+"); printf("1");}
-    else if (mode == FIRST) {fp = fopen(file, "wb+"); printf("2");}
-    else printf("Co cl");
+    FILE *fp = fopen(file, "wb+"); 
+
     if (fp == NULL){
         perror("Error reading file\n");
         exit(1);

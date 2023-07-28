@@ -78,7 +78,7 @@ int main(int argc, char **argv){
     else printf("Socket: %d \n",serverSocketfd);
     bzero (&serveradd, sizeof(serveradd));
     serveradd.sin_family = AF_INET;
-    serveradd.sin_port = htons ( 5555 );
+    serveradd.sin_port = htons ( 5585 );
     serveradd.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bind (serverSocketfd, (struct sockaddr*) &serveradd, sizeof( serveradd))!=0){
         perror("Server bind fail");
