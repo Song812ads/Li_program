@@ -104,7 +104,6 @@ int main()
     printf("%lld\n",atoll(msg));
     int a = 5000;
     if (a == BUFFLEN) printf("TRue"); else printf("False");
-    printf({a});
     return 0;
 
 }
