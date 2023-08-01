@@ -158,11 +158,12 @@ int main(int argc, char **argv){
             perror("recv failed");
             exit(1);
         }
-
+            printf("%s\n",buffer);
             if (strcmp(buffer,"size") == 0){
             memset(buffer,'\0',BUFFLEN);
             strcpy(buffer,path_buffer);
             long  size = file_transfer(buffer,t);
+            printf("%s\n",buffer);
             if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr*)&clientadd, cli_ad_sz )<0){
                 printf("Fail to send file read");  
                 free(buffer);

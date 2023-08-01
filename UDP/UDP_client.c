@@ -97,13 +97,6 @@ int main(int argc, char **argv){
 
     else{
         printf("%s ready to download \n",argv[3]);
-        memset(buffer,'\0',BUFFLEN);                   
-        strcpy(buffer,"Ready");
-        if (sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0){
-            printf("Fail to send success read file signal");  
-            free(buffer);
-            exit(1);
-        }
     int t =0; // số lần đã chuyển 
     file_mode mode = FIRST; // mode mở của file
     // here:
