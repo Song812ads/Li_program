@@ -174,7 +174,7 @@ int main(int argc, char **argv){
                 perror("Buffer content read failed");
                 exit(1);
             }
-            
+            printf("%s\n",buffer);
             // Các bước ACK, FIN để kết thúc giao tiếp TCP/IP hoặc là Again để tiếp tục vòng nhận dữ liệu
             if (strcmp("FIN",buffer) == 0){
                 if (size == BUFFLEN) {t++;
