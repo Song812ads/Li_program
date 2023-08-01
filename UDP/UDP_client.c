@@ -72,14 +72,10 @@ int main(int argc, char **argv){
     serveradd.sin_port = htons ( atoi(port) );
     serveradd.sin_addr.s_addr = inet_addr("192.168.29.198");
 
-    
-
-
-
 
     memset(buffer,'\0',BUFFLEN);                   
     strcpy(buffer,argv[3]);
-    if(send(socketfd,buffer,BUFFLEN,0)<0)              
+    if(sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0)              
     {
         printf("sending the file name to the server side failed\n");
         perror("send failed");
