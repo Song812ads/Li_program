@@ -106,12 +106,17 @@ int main(int argc, char **argv){
         if ((recvfrom(serverSocketfd, buffer, BUFFLEN, 0, (struct sockaddr *) &clientadd, &cli_ad_sz))<0){
             perror("Recv error");
         }
-        host = gethostbyaddr((const char *)&clientadd.sin_addr.s_addr, 
-              sizeof(clientadd.sin_addr.s_addr), AF_INET);
+        host = gethostbyaddr((const char *)&clientadd.sin_addr.s_addr, sizeof(clientadd.sin_addr.s_addr), AF_INET);
         if (host == NULL) perror("ERROR on gethostbyaddr");
-        hostaddr = inet_ntoa(clientadd.sin_addr);
+        else {hostaddr = inet_ntoa(clientadd.sin_addr);
         if (hostaddr == NULL) perror("ERROR on inet_ntoa\n");
-        printf("Server receive request from %s (%s)\n",host->h_name, hostaddr);
+        printf("Server receive request from %s (%s)\n",host->h_name, hostaddr);}
+        bzero(buffer,BUFFLEN);
+        strcpy(buffer,"Hello world");
+        if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr*)&clientadd,cli_ad_sz)<0){
+            printf("Fail to send access error signal");
+            free(buffer);
+            exit(1); }
 
     }
 

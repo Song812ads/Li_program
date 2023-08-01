@@ -81,6 +81,13 @@ int main(int argc, char **argv){
         perror("send failed");
         exit(1);
     }
+    if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
+    {
+        perror("Checkin failed");
+        exit(1);
+    }
+    printf("Message: %s\n",buffer);
+    
     
     // // Kiểm tra xem server đã sẵn sàng gửi dữ liệu chưa
     // memset(buffer,'\0',BUFFLEN);                   
