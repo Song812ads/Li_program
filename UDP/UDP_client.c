@@ -109,7 +109,7 @@ int main(int argc, char **argv){
             perror("Buffer size read failed");
             exit(1);
         }
-            printf("%s\n",buffer);
+            
             long size = atol(buffer);
         // gửi tin hiêu đã nhận kích thươc file
             memset(buffer,'\0',BUFFLEN);                   
@@ -121,18 +121,18 @@ int main(int argc, char **argv){
             }
             // Nhận dữ liệu file từ server
             memset(buffer,'\0',BUFFLEN); 
-            printf("123");
+          
             if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
             {
                 perror("Buffer content read failed");
                 exit(1);
             }
-            printf("%s\n",buffer);
+            
             file_transfer(argv[3],buffer,size,t,mode);
                 
             memset(buffer,'\0',BUFFLEN);    
             // Gửi tín hiệu đã hoàn tất đợi nhận từ server đã kết thúc nhận dữ liệu hay sẽ nhận tiếp
-            strcpy(buffer,"FIN");
+            strcpy(buffer,"FINY");
         
             if (sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0){
                 printf("Fail to send success read file signal");  

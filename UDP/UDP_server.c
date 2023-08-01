@@ -86,7 +86,7 @@ int main(int argc, char **argv){
 
     bzero (&serveradd, sizeof(serveradd));
     serveradd.sin_family = AF_INET;
-    serveradd.sin_port = htons ( 6385 );
+    serveradd.sin_port = htons ( 6365 );
     serveradd.sin_addr.s_addr = htonl(INADDR_ANY);
     //   if( setsockopt (serverSocketfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0 )
     //     printf( "setsockopt fail\n" );
@@ -178,8 +178,8 @@ int main(int argc, char **argv){
           
             // Các bước ACK, FIN để kết thúc giao tiếp TCP/IP hoặc là Again để tiếp tục vòng nhận dữ liệu
             // printf("%ld\n",size);
-
-            if (strcmp(buffer,"FIN") == 0){
+          
+            if (strcmp(buffer,"FINY") == 0){
                 if (size == BUFFLEN) {t++;
                     memset(buffer,'\0',BUFFLEN);                   
                     strcpy(buffer,"Again");
