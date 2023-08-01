@@ -95,16 +95,24 @@ int main(int argc, char **argv){
     //     printf( "setsockopt fail\n" );
     //   if( setsockopt (serverSocketfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv)) < 0 )
     //     printf( "setsockopt fail\n" ) ;
-
+    if (bind (serverSocketfd, (struct sockaddr*) &serveradd, sizeof( serveradd))!=0){
+        perror("Server bind fail");
+        close(serverSocketfd);
+        exit(1);
+    }
+    else printf("Binding...\n");
     while (1){
         bzero(buffer,BUFFLEN);
+        if ((recvfrom(serverSocketfd, buffer, BUFFLEN, 0, (struct sockaddr *) &clientadd, &cli_ad_sz))<0){
+            perror("Recv error");
+        }
         host = gethostbyaddr((const char *)&clientadd.sin_addr.s_addr, 
               sizeof(clientadd.sin_addr.s_addr), AF_INET);
         if (host == NULL) perror("ERROR on gethostbyaddr");
         hostaddr = inet_ntoa(clientadd.sin_addr);
         if (hostaddr == NULL) perror("ERROR on inet_ntoa\n");
         printf("Server receive request from %s (%s)\n",host->h_name, hostaddr);
-        
+
     }
 
     // if (bind (serverSocketfd, (struct sockaddr*) &serveradd, sizeof( serveradd))!=0){
