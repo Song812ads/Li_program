@@ -201,6 +201,7 @@ int main(int argc, char **argv){
                         }
                         printf("%s\n",buffer);
                     memset(buffer,'\0',BUFFLEN); 
+                    printf("%s\n",buffer);
                     if(recvfrom(serverSocketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &cli_ad_sz )<0)
                         {
                             perror("Buffer content read failed");
