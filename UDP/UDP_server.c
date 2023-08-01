@@ -180,7 +180,6 @@ int main(int argc, char **argv){
             // printf("%ld\n",size);
             if (strcmp(buffer,"FIN") == 0){
                 if (size == BUFFLEN) {t++;
-
                     memset(buffer,'\0',BUFFLEN);                   
                     strcpy(buffer,"Again");
                     // printf("%s\n",buffer);
@@ -191,18 +190,14 @@ int main(int argc, char **argv){
                     }
                 }
                 else {  
-                        
                         memset(buffer,'\0',BUFFLEN);  
                         // Gửi tín hiệu đã hoàn tất đợi nhận từ server đã kết thúc nhận dữ liệu hay sẽ nhận tiếp
-                        strcpy(buffer,"FIN");
-            
+                        strcpy(buffer,"FINS");
                         if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, cli_ad_sz)<0){
                             printf("Fail to send success read file signal");  
                             free(buffer);
                             exit(1);
                         }
-
-                            
                     memset(buffer,'\0',BUFFLEN); 
                     if(recvfrom(serverSocketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &cli_ad_sz )<0)
                         {
