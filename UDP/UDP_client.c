@@ -81,102 +81,76 @@ int main(int argc, char **argv){
         perror("send failed");
         exit(1);
     }
+
+    memset(buffer,'\0',BUFFLEN);                   
     if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
     {
         perror("Checkin failed");
         exit(1);
     }
-    printf("Message: %s\n",buffer);
-    
-    
-    // // Kiểm tra xem server đã sẵn sàng gửi dữ liệu chưa
-    // memset(buffer,'\0',BUFFLEN);                   
-    // if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
-    // {
-    //     perror("Checkin failed");
-    //     exit(1);
-    // }
 
-    // if (strcmp(buffer,"Error")==0) {
-    //     printf("%s download fail \n",argv[3]);
-    //     exit(1);
-    // }
+    if (strcmp(buffer,"Error")==0) {
+        printf("%s download fail \n",argv[3]);
+        exit(1);
+    }
 
-    // else{
-    //     printf("%s ready to download \n",argv[3]);
-    // int t =0; // số lần đã chuyển 
-    // file_mode mode = FIRST; // mode mở của file
-    // // here:
-    //  while (1){
-    //     if (t>0) mode = AFTER;
-    //     // Nhận kích thuốc file từ server
-    //     memset(buffer,'\0',BUFFLEN); 
-    //     if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
-    //     {
-    //         perror("Buffer size read failed");
-    //         exit(1);
-    //     }
-            
-    //         long size = atol(buffer);
-    //     // gửi tin hiêu đã nhận kích thươc file
-    //         memset(buffer,'\0',BUFFLEN);                   
-    //         strcpy(buffer,"size");
-    //         if (sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0){
-    //             printf("Fail to send success read file signal");  
-    //             free(buffer);
-    //             exit(1);
-    //         }
-    //         // Nhận dữ liệu file từ server
-    //         memset(buffer,'\0',BUFFLEN); 
-          
-    //         if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
-    //         {
-    //             perror("Buffer content read failed");
-    //             exit(1);
-    //         }
-            
-    //         file_transfer(argv[3],buffer,size,t,mode);
+    else {
+        printf("%s ready to download \n",argv[3]);
+        int t =0; // số lần đã chuyển 
+        file_mode mode = FIRST; // mode mở của file
+        while (1){
+            if (t>0) mode = AFTER;
+            // Nhận kích thuốc file từ server
+            memset(buffer,'\0',BUFFLEN); 
+            if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
+            {
+                perror("Buffer size read failed");
+                exit(1);
+            }
                 
-    //         memset(buffer,'\0',BUFFLEN);    
-    //         // Gửi tín hiệu đã hoàn tất đợi nhận từ server đã kết thúc nhận dữ liệu hay sẽ nhận tiếp
-    //         strcpy(buffer,"FINY");
-        
-    //         if (sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0){
-    //             printf("Fail to send success read file signal");  
-    //             free(buffer);
-    //             exit(1);
-    //         }
+                long size = atol(buffer);
+            // gửi tin hiêu đã nhận kích thươc file
+                memset(buffer,'\0',BUFFLEN);                   
+                strcpy(buffer,"size");
+                if (sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0){
+                    printf("Fail to send success read file signal");  
+                    free(buffer);
+                    exit(1);
+                }
+                // Nhận dữ liệu file từ server
+                memset(buffer,'\0',BUFFLEN); 
             
-    //         memset(buffer,'\0',BUFFLEN); 
-            
-    //         if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
-    //         {
-    //             perror("Buffer content read failed");
-    //             exit(1);
-    //         }     
-            
-            
-    //         if (size == BUFFLEN ){
-    //             t++;
-    //         }
-    //         else {
-    //         printf("Read total file size: %ld\n",size);
-    //         printf("Connection close\n");    
-    //         memset(buffer,'\0',BUFFLEN);  
-    //         strcpy(buffer,"END");
-    //         printf("%s\n",buffer);
-    //         if (sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0){
-    //             printf("Fail to send success read file signal");  
-    //             free(buffer);
-    //             exit(1);
-    //         }
-    //         break;
-    //         }
+                if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
+                {
+                    perror("Buffer content read failed");
+                    exit(1);
+                }
                 
-        // }}
-        
-
-
+                file_transfer(argv[3],buffer,size,t,mode);
+                    
+                memset(buffer,'\0',BUFFLEN); 
+                strcpy(buffer,"DONE");
+                if (sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0){
+                    printf("Fail to send success read file signal");  
+                    free(buffer);
+                    exit(1);
+                }
+                memset(buffer,'\0',BUFFLEN); 
+            
+                if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
+                {
+                    perror("Buffer content read failed");
+                    exit(1);
+                }
+                if (strcmp(buffer,"CONT")==0){
+                    t++;
+                }
+                else if (strcmp(buffer,"OVER")==0){
+                    printf("Total size receive from server: %ld\n",t*BUFFLEN+size);
+                    break;
+                }
+    }}
+    
     free(buffer);
     close(socketfd);
     return 0;
