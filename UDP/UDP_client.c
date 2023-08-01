@@ -51,6 +51,7 @@ int main(int argc, char **argv){
     signal(SIGINT,exithandler);
     int socketfd; 
     struct sockaddr_in serveradd;
+    int serlen = sizeof(serveradd);
     unsigned char *buffer = (unsigned char* )malloc(BUFFLEN * sizeof(unsigned char));
     
     if (argc!=4){
@@ -75,11 +76,7 @@ int main(int argc, char **argv){
         exit(1);
     }
 
-    if (connect(socketfd,(struct sockaddr *)&serveradd, sizeof(serveradd))<0){
-        perror("Connection fail");
-        close(socketfd);
-        exit(1);
-    }
+
 
 
     memset(buffer,'\0',BUFFLEN);                   
@@ -93,7 +90,7 @@ int main(int argc, char **argv){
     
     // Kiểm tra xem server đã sẵn sàng gửi dữ liệu chưa
     memset(buffer,'\0',BUFFLEN);                   
-    if(recv(socketfd,buffer,BUFFLEN,0)<0)
+    if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
     {
         perror("Checkin failed");
         exit(1);
@@ -102,7 +99,7 @@ int main(int argc, char **argv){
         printf("%s ready to download \n",argv[3]);
         memset(buffer,'\0',BUFFLEN);                   
         strcpy(buffer,"Ready");
-        if (send(socketfd,buffer,BUFFLEN,0)<0){
+        if (sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0){
             printf("Fail to send success read file signal");  
             free(buffer);
             exit(1);
@@ -114,7 +111,7 @@ int main(int argc, char **argv){
         if (t>0) mode = AFTER;
         // Nhận kích thuốc file từ server
         memset(buffer,'\0',BUFFLEN); 
-        if(recv(socketfd,buffer,BUFFLEN,0)<0)
+        if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
         {
             perror("Buffer size read failed");
             exit(1);
@@ -123,14 +120,14 @@ int main(int argc, char **argv){
         // gửi tin hiêu đã nhận kích thươc file
             memset(buffer,'\0',BUFFLEN);                   
             strcpy(buffer,"size");
-            if (send(socketfd,buffer,BUFFLEN,0)<0){
+            if (sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0){
                 printf("Fail to send success read file signal");  
                 free(buffer);
                 exit(1);
             }
             // Nhận dữ liệu file từ server
             memset(buffer,'\0',BUFFLEN); 
-            if(recv(socketfd,buffer,BUFFLEN,0)<0)
+            if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
             {
                 perror("Buffer content read failed");
                 exit(1);
@@ -142,13 +139,13 @@ int main(int argc, char **argv){
             // Gửi tín hiệu đã hoàn tất đợi nhận từ server đã kết thúc nhận dữ liệu hay sẽ nhận tiếp
             strcpy(buffer,"FIN");
             printf("%s\n",buffer);
-            if (send(socketfd,buffer,sizeof(buffer),0)<0){
+            if (sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0){
                 printf("Fail to send success read file signal");  
                 free(buffer);
                 exit(1);
             }
             memset(buffer,'\0',BUFFLEN); 
-            if(recv(socketfd,buffer,BUFFLEN,0)<0)
+            if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
             {
                 perror("Buffer content read failed");
                 exit(1);
@@ -158,7 +155,7 @@ int main(int argc, char **argv){
             }
             else if (strcmp(buffer,"ACK")==0){
                 printf("Receiving ACK from server\n");
-                if(recv(socketfd,buffer,BUFFLEN,0)<0)
+                if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
                 {
                     perror("Buffer content read failed");
                     exit(1);
@@ -169,7 +166,7 @@ int main(int argc, char **argv){
                     memset(buffer,'\0',BUFFLEN);                   
                     strcpy(buffer,"ACK");
                     printf("Sending ACK to server\n");
-                    if (send(socketfd,buffer,BUFFLEN,0)<0){
+                    if (sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0){
                         printf("Fail to send success read file signal");  
                         free(buffer);
                         exit(1);

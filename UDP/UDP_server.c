@@ -68,14 +68,14 @@ int main(int argc, char **argv){
     int serverSocketfd;
     struct sockaddr_in serveradd, clientadd;
     char *buffer = (char* )malloc(BUFFLEN * sizeof(char));
-    socklen_t cli_ad_sz;
+    int cli_ad_sz = sizeof(clientadd);
     char* path = "/home/phuongnam/transmit/"; // noi store cac file
 
     // Socket create:
-    if ((serverSocketfd = socket(PF_INET, SOCK_DGRAM,0))<0){
+    if ((serverSocketfd = socket(AF_INET, SOCK_DGRAM,IPPROTO_UDP))<0){
         perror("Socket create fail");
         exit(1);
-    }
+    }   
 
     else printf("Socket created \n");
 
@@ -94,7 +94,6 @@ int main(int argc, char **argv){
     else printf("Binding...\n");
 
     while (1){
-        cli_ad_sz = sizeof(clientadd);
         memset(buffer,'\0', BUFFLEN);
         if(recvfrom(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr*)&clientadd, &cli_ad_sz)<0)
         {
@@ -107,7 +106,7 @@ int main(int argc, char **argv){
             printf("Error access file\n");
             memset(buffer,'\0', BUFFLEN);
             strcpy(buffer,"Error");
-            if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr*)&clientadd, &cli_ad_sz)<0){
+            if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr*)&clientadd,cli_ad_sz)<0){
                 printf("Fail to send access error signal");
                 free(buffer);
                 exit(1); 
@@ -123,7 +122,7 @@ int main(int argc, char **argv){
             sprintf(buffer,"%ld",size);
     // Gửi kích thuốc khi kích thước =500 có thể hiểu là vẫn còn thêm thông tin. client sẽ chỉnh mode mở là append nếu có 1 lần kích thuốc =500.
     // Dê mode mở bth nếu như k có lần nào 500 byte được chuyển
-            if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr*)&clientadd, &cli_ad_sz)<0){
+            if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr*)&clientadd,sizeof(struct sockaddr))<0){
                 printf("Fail to send file read");  
                 free(buffer);
                 close(serverSocketfd);
@@ -142,7 +141,7 @@ int main(int argc, char **argv){
             memset(buffer,'\0',BUFFLEN);
             strcpy(buffer,path);
             long  size = file_transfer(buffer,t);
-            if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr*)&clientadd, &cli_ad_sz)<0){
+            if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr*)&clientadd, cli_ad_sz )<0){
                 printf("Fail to send file read");  
                 free(buffer);
                 exit(1);
@@ -161,7 +160,7 @@ int main(int argc, char **argv){
                     memset(buffer,'\0',BUFFLEN);                   
                     strcpy(buffer,"Again");
                     printf("Continue sending from server");
-                    if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr*)&clientadd, &cli_ad_sz)<0){
+                    if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr*)&clientadd,cli_ad_sz)<0){
                         printf("Fail to send success read file signal");  
                         free(buffer);
                         exit(1);
