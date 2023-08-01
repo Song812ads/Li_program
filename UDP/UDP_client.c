@@ -70,7 +70,7 @@ int main(int argc, char **argv){
     serveradd.sin_family = AF_INET;
     char* port = argv[2];
     serveradd.sin_port = htons ( atoi(port) );
-    serveradd.sin_addr.s_addr = inet_addr(argv[1]);
+    serveradd.sin_addr.s_addr = inet_addr("192.168.29.198");
 
     
 
