@@ -133,10 +133,10 @@ int main(int argc, char **argv){
                 printf("Fail to send access error signal");
                 free(buffer);
                 exit(1); }
-        while (1){
+        
         int t = 0; // ghi lại số lần dẵ chuyển
     // Tạo vòng lặp gửi dữ liệu với từng buffer. VD 1 file 4k3 sẽ gửi bằng 9 lần với 8 lần max 500 byte và 1 lần 300 bytes. 
-       
+        while (1){
             memset(buffer,'\0',BUFFLEN);
             strcpy(buffer,path_buffer);
             printf("Continue sending from server part %d \n",t+1);
@@ -174,13 +174,13 @@ int main(int argc, char **argv){
                 perror("Buffer content read failed");
                 exit(1);
             }
-            printf("%s\n",buffer);
+          
             // Các bước ACK, FIN để kết thúc giao tiếp TCP/IP hoặc là Again để tiếp tục vòng nhận dữ liệu
-            if (strcmp("FIN",buffer) == 0){
+            if (strcmp(buffer,"FIN") == 0){
                 if (size == BUFFLEN) {t++;
                     memset(buffer,'\0',BUFFLEN);                   
                     strcpy(buffer,"Again");
-                    printf("Continue sending from server");
+                   
                     if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr*)&clientadd,cli_ad_sz)<0){
                         printf("Fail to send success read file signal");  
                         free(buffer);
@@ -222,7 +222,7 @@ int main(int argc, char **argv){
                          memset(buffer,'\0',BUFFLEN);  
                         // Gửi tín hiệu đã hoàn tất đợi nhận từ server đã kết thúc nhận dữ liệu hay sẽ nhận tiếp
                         strcpy(buffer,"FIN");
-                        printf("%s\n",buffer);
+            
                         if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, cli_ad_sz)<0){
                             printf("Fail to send success read file signal");  
                             free(buffer);

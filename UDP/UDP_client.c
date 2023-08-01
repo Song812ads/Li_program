@@ -138,12 +138,13 @@ int main(int argc, char **argv){
               
             // Gửi tín hiệu đã hoàn tất đợi nhận từ server đã kết thúc nhận dữ liệu hay sẽ nhận tiếp
             strcpy(buffer,"FIN");
-
+            
             if (sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0){
                 printf("Fail to send success read file signal");  
                 free(buffer);
                 exit(1);
             }
+            printf("%s",buffer);
             memset(buffer,'\0',BUFFLEN); 
             if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
             {
