@@ -71,8 +71,6 @@ int main(int argc, char **argv){
     char* port = argv[2];
     serveradd.sin_port = htons ( atoi(port) );
     serveradd.sin_addr.s_addr = inet_addr(argv[1]);
-
-
     memset(buffer,'\0',BUFFLEN);                   
     strcpy(buffer,argv[3]);
     if(sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0)              
