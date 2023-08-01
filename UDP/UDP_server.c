@@ -158,12 +158,12 @@ int main(int argc, char **argv){
             perror("recv failed");
             exit(1);
         }
-            printf("%s\n",buffer);
+            // printf("%s\n",buffer);
             if (strcmp(buffer,"size") == 0){
             memset(buffer,'\0',BUFFLEN);
             strcpy(buffer,path_buffer);
             long  size = file_transfer(buffer,t);
-            printf("%s\n",buffer);
+         
             if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr*)&clientadd, cli_ad_sz )<0){
                 printf("Fail to send file read");  
                 free(buffer);
@@ -175,52 +175,24 @@ int main(int argc, char **argv){
                 perror("Buffer content read failed");
                 exit(1);
             }
-          
+            // printf("%s\n",buffer);
             // Các bước ACK, FIN để kết thúc giao tiếp TCP/IP hoặc là Again để tiếp tục vòng nhận dữ liệu
+            // printf("%ld\n",size);
             if (strcmp(buffer,"FIN") == 0){
                 if (size == BUFFLEN) {t++;
+
                     memset(buffer,'\0',BUFFLEN);                   
                     strcpy(buffer,"Again");
-                   
+                    // printf("%s\n",buffer);
                     if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr*)&clientadd,cli_ad_sz)<0){
                         printf("Fail to send success read file signal");  
                         free(buffer);
                         exit(1);
                     }
                 }
-                // else {
-                //     memset(buffer,'\0',BUFFLEN);                   
-                //     strcpy(buffer,"ACK");
-
-                //     printf("Sending ACK to close communication\n");
-                //     if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
-                //         printf("Fail to send success read file signal");  
-                //         free(buffer);
-                //         exit(1);
-                //     }
-                
-                //  sleep(3); 
-                //     memset(buffer,'\0',BUFFLEN);                   
-                //     strcpy(buffer,"FIN");
-                //     if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
-                //         printf("Fail to send success read file signal");  
-                //         free(buffer);
-                //         exit(1);
-                //     }
-                //     printf("Sending FIN to close communication\n");
-                //     memset(buffer,'\0',BUFFLEN);                   
-                //     if(recv(clientSocketfd,buffer,BUFFLEN,0)<0)
-                // {
-                //     printf(" Knowing the status of the file on server side failed\n");
-                //     perror("recv failed");
-                //     exit(1);
-                // }
-                //     if (strcmp(buffer,"ACK")==0){
-                //         printf("Size from server: %ld \n",t*BUFFLEN+size);
-                //         printf("Server finish service. Ready to close\n");
-                //     }
                 else {  
-                         memset(buffer,'\0',BUFFLEN);  
+                        
+                        memset(buffer,'\0',BUFFLEN);  
                         // Gửi tín hiệu đã hoàn tất đợi nhận từ server đã kết thúc nhận dữ liệu hay sẽ nhận tiếp
                         strcpy(buffer,"FIN");
             
@@ -230,16 +202,25 @@ int main(int argc, char **argv){
                             exit(1);
                         }
 
-                        printf("Size from server: %ld \n",t*BUFFLEN+size);
-                        printf("Server finish service. Ready to close\n");                 
+                            
+                    memset(buffer,'\0',BUFFLEN); 
+                    if(recvfrom(serverSocketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &cli_ad_sz )<0)
+                        {
+                            perror("Buffer content read failed");
+                            exit(1);
+                        }               
+                        if (strcmp(buffer,"End") == 0){
+                            printf("Size from server: %ld \n",t*BUFFLEN+size);
+                            printf("Server finish service. Ready to close\n"); 
+                        }
                     break;
                 }  
             }
   
             
-            }
+            
         }
-            }
+            }}
 
 
     free(buffer);

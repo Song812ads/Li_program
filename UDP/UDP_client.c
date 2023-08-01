@@ -154,6 +154,14 @@ int main(int argc, char **argv){
                     printf("Read total file size: %ld\n",size);
                     printf("Connection close\n");
                 }
+            memset(buffer,'\0',BUFFLEN);  
+            strcpy(buffer,"END");
+            
+            if (sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0){
+                printf("Fail to send success read file signal");  
+                free(buffer);
+                exit(1);
+            }
                 break;
         }}
         
