@@ -139,7 +139,7 @@ int main(int argc, char **argv){
                 free(buffer);
                 exit(1);
             }
-            
+            printf("%s\n",buffer);
             memset(buffer,'\0',BUFFLEN); 
             
             if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
@@ -152,7 +152,7 @@ int main(int argc, char **argv){
             if (strcmp(buffer,"Again")==0){
                 t++;
             }
-            else if (strcmp(buffer,"FINS")==0){
+            else if (strcmp(buffer,"FINSh")==0){
 
             printf("Read total file size: %ld\n",size);
             printf("Connection close\n");    

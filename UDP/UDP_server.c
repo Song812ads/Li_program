@@ -193,21 +193,21 @@ int main(int argc, char **argv){
                 else {  
                         memset(buffer,'\0',BUFFLEN);  
                         // Gửi tín hiệu đã hoàn tất đợi nhận từ server đã kết thúc nhận dữ liệu hay sẽ nhận tiếp
-                        strcpy(buffer,"FINS");
+                        strcpy(buffer,"FINSh");
                         if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, cli_ad_sz)<0){
                             printf("Fail to send success read file signal");  
                             free(buffer);
                             exit(1);
                         }
-                        printf("%s\n",buffer);
+              
                     memset(buffer,'\0',BUFFLEN); 
-                    printf("%s\n",buffer);
+            
                     if(recvfrom(serverSocketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &cli_ad_sz )<0)
                         {
                             perror("Buffer content read failed");
                             exit(1);
                         }               
-                    printf("%s\n",buffer);
+       
                         if (strcmp(buffer,"END") == 0){
                             printf("Size from server: %ld \n",t*BUFFLEN+size);
                             printf("Server finish service. Ready to close\n"); 
