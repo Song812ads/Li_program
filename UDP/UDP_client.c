@@ -116,6 +116,7 @@ int main(int argc, char **argv){
             perror("Buffer size read failed");
             exit(1);
         }
+            printf("%s\n",buffer);
             long size = atol(buffer);
         // gửi tin hiêu đã nhận kích thươc file
             memset(buffer,'\0',BUFFLEN);                   
@@ -132,7 +133,7 @@ int main(int argc, char **argv){
                 perror("Buffer content read failed");
                 exit(1);
             }
-            
+            printf("%s\n",buffer);
             file_transfer(argv[3],buffer,size,t,mode);
             memset(buffer,'\0',BUFFLEN);  
               
@@ -151,7 +152,8 @@ int main(int argc, char **argv){
                 perror("Buffer content read failed");
                 exit(1);
             }     
-            printf("%s",buffer);
+            printf("%s\n",buffer);
+            
             if (strcmp(buffer,"Again")==0){
                 t++;
             }
