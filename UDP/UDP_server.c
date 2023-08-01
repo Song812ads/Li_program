@@ -175,9 +175,10 @@ int main(int argc, char **argv){
                 perror("Buffer content read failed");
                 exit(1);
             }
-            // printf("%s\n",buffer);
+          
             // Các bước ACK, FIN để kết thúc giao tiếp TCP/IP hoặc là Again để tiếp tục vòng nhận dữ liệu
             // printf("%ld\n",size);
+
             if (strcmp(buffer,"FIN") == 0){
                 if (size == BUFFLEN) {t++;
                     memset(buffer,'\0',BUFFLEN);                   
@@ -198,13 +199,15 @@ int main(int argc, char **argv){
                             free(buffer);
                             exit(1);
                         }
+                        printf("%s\n",buffer);
                     memset(buffer,'\0',BUFFLEN); 
                     if(recvfrom(serverSocketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &cli_ad_sz )<0)
                         {
                             perror("Buffer content read failed");
                             exit(1);
                         }               
-                        if (strcmp(buffer,"End") == 0){
+                    printf("%s\n",buffer);
+                        if (strcmp(buffer,"END") == 0){
                             printf("Size from server: %ld \n",t*BUFFLEN+size);
                             printf("Server finish service. Ready to close\n"); 
                         }

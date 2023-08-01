@@ -153,7 +153,7 @@ int main(int argc, char **argv){
             else if (strcmp(buffer,"FINS")==0){
                     printf("Read total file size: %ld\n",size);
                     printf("Connection close\n");
-                }
+                
             memset(buffer,'\0',BUFFLEN);  
             strcpy(buffer,"END");
             
@@ -161,7 +161,7 @@ int main(int argc, char **argv){
                 printf("Fail to send success read file signal");  
                 free(buffer);
                 exit(1);
-            }
+            }}
                 break;
         }}
         
