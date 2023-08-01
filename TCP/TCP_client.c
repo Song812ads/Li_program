@@ -42,7 +42,7 @@ void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
         offset = offset+readnow;
     }
     close(fp);
-    printf("File write complete part %d \n",t);
+    printf("File write complete part %d \n",t+1);
 }
 
 int main(int argc, char **argv){

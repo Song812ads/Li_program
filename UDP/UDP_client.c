@@ -59,7 +59,7 @@ int main(int argc, char **argv){
     }
 
     // Socket create:
-    if ((socketfd = socket(PF_INET, SOCK_STREAM,0))<0){
+    if ((socketfd = socket(AF_INET,SOCK_DGRAM,0))<0){
         perror("Socket create fail\n");
         exit(1);
     }

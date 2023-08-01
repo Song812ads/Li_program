@@ -40,7 +40,8 @@ long file_transfer(char* buffer, int t){
         else offset = offset+readnow;
     }
     close(fp);
-//    printf("File read complete \n");
+    printf("Continue sending from server part %d \n",t+1);
+
     return offset;
 }
 
@@ -209,7 +210,7 @@ int main(int argc, char **argv){
                 if (size == BUFFLEN) {t++;
                     memset(buffer,'\0',BUFFLEN);                   
                     strcpy(buffer,"Again");
-                    printf("Continue sending from server part %d \n",t);
+                    
                     if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
                         printf("Fail to send success read file signal");  
                         goto end;
