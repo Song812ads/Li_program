@@ -69,7 +69,7 @@ int main(int argc, char **argv){
     struct sockaddr_in serveradd, clientadd;
     char *buffer = (char* )malloc(BUFFLEN * sizeof(char));
     int cli_ad_sz = sizeof(clientadd);
-    char* path = "/home/phuongnam/transmit/"; // noi store cac file
+     // noi store cac file
 
     // Socket create:
     if ((serverSocketfd = socket(AF_INET, SOCK_DGRAM,IPPROTO_UDP))<0){
@@ -101,8 +101,15 @@ int main(int argc, char **argv){
             perror("recv failed");
             exit(1);
         }
-        strcat(path,buffer);
-        if (checkfile(path)==0){
+        char* path = "/home/phuongnam/transmit/";
+        size_t len = strlen(path);
+        char* path_buffer = malloc(len+strlen(buffer));
+        memset(path_buffer,'\0',sizeof(path_buffer));
+        strcpy(path_buffer,path);
+        strcpy(path_buffer+len,buffer);
+        strcpy(buffer,path_buffer);
+        
+        if (checkfile(buffer)==0){
             printf("Error access file\n");
             memset(buffer,'\0', BUFFLEN);
             strcpy(buffer,"Error");
@@ -117,7 +124,8 @@ int main(int argc, char **argv){
     // Tạo vòng lặp gửi dữ liệu với từng buffer. VD 1 file 4k3 sẽ gửi bằng 9 lần với 8 lần max 500 byte và 1 lần 300 bytes. 
         while (1){
             memset(buffer,'\0',BUFFLEN);
-            strcpy(buffer,path);
+            strcpy(buffer,path_buffer);
+            free(path_buffer);
             long  size = file_transfer(buffer,t);
             sprintf(buffer,"%ld",size);
     // Gửi kích thuốc khi kích thước =500 có thể hiểu là vẫn còn thêm thông tin. client sẽ chỉnh mode mở là append nếu có 1 lần kích thuốc =500.
@@ -197,13 +205,26 @@ int main(int argc, char **argv){
                 //         printf("Size from server: %ld \n",t*BUFFLEN+size);
                 //         printf("Server finish service. Ready to close\n");
                 //     }
-                else   break;
+                else {  
+                         memset(buffer,'\0',BUFFLEN);  
+                        // Gửi tín hiệu đã hoàn tất đợi nhận từ server đã kết thúc nhận dữ liệu hay sẽ nhận tiếp
+                        strcpy(buffer,"FIN");
+                        printf("%s\n",buffer);
+                        if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, cli_ad_sz)<0){
+                            printf("Fail to send success read file signal");  
+                            free(buffer);
+                            exit(1);
+                        }
+
+                        printf("Size from server: %ld \n",t*BUFFLEN+size);
+                        printf("Server finish service. Ready to close\n");                 
+                    break;
+                }
             }}}
             }}
 
 
     free(buffer);
-    free(path);
     close(serverSocketfd);
 
 }

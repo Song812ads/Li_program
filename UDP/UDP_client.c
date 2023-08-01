@@ -147,31 +147,14 @@ int main(int argc, char **argv){
             if (strcmp(buffer,"Again")==0){
                 t++;
             }
-            else if (strcmp(buffer,"ACK")==0){
-                printf("Receiving ACK from server\n");
-                if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
-                {
-                    perror("Buffer content read failed");
-                    exit(1);
-                }  
-                
-                if (strcmp(buffer,"FIN") ==0){
-                    printf("Receiving FIN from server\n");
-                    memset(buffer,'\0',BUFFLEN);                   
-                    strcpy(buffer,"ACK");
-                    printf("Sending ACK to server\n");
-                    if (sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0){
-                        printf("Fail to send success read file signal");  
-                        free(buffer);
-                        exit(1);
-                    }
+            else {
                     printf("Read total file size: %ld\n",size);
                     printf("Connection close\n");
                 }
                 break;
-        }}}
+        }}
         
-    else if (strcmp(buffer,"Error")==0){
+    else {
         printf("%s download fail \n",argv[3]);
         exit(1);
     }
