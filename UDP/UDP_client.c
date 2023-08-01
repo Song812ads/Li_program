@@ -121,6 +121,7 @@ int main(int argc, char **argv){
             }
             // Nhận dữ liệu file từ server
             memset(buffer,'\0',BUFFLEN); 
+            printf("123");
             if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
             {
                 perror("Buffer content read failed");
@@ -128,7 +129,7 @@ int main(int argc, char **argv){
             }
             printf("%s\n",buffer);
             file_transfer(argv[3],buffer,size,t,mode);
-                printf("123");
+                
             memset(buffer,'\0',BUFFLEN);    
             // Gửi tín hiệu đã hoàn tất đợi nhận từ server đã kết thúc nhận dữ liệu hay sẽ nhận tiếp
             strcpy(buffer,"FIN");
