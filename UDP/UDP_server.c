@@ -13,7 +13,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <netinet/tcp.h>
-#define BUFFLEN 500
+#define BUFFLEN 50000
 
 void pipebroke()
 {
@@ -27,7 +27,7 @@ void exithandler()
 }
 
 long file_transfer(char* buffer, int t){
-    int fp = open(buffer, O_RDONLY);
+    int fp = open(buffer, O_RDONLY | O_NONBLOCK);
     if (fp == -1){
         perror("Error reading file\n");
         exit(1);
@@ -41,8 +41,6 @@ long file_transfer(char* buffer, int t){
         else offset = offset+readnow;
     }
     close(fp);
-    
-
     return offset;
 }
 
@@ -64,7 +62,7 @@ int checkfile(unsigned char* buffer){
 int main(int argc, char **argv){
     signal(SIGPIPE,pipebroke);
     signal(SIGINT,exithandler);
-
+    
     // Thiêt lập port và các phương thức cơ bản giao tiếp TCP/IP
     int serverSocketfd;
     struct sockaddr_in serveradd, clientadd;
@@ -112,12 +110,6 @@ int main(int argc, char **argv){
         printf("port is: %d\n", (int) ntohs(clientadd.sin_port));
         printf("File request: %s \n",buffer);
 
-        bzero(buffer,BUFFLEN);
-        strcpy(buffer,"Hello world");
-        if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr*)&clientadd,cli_ad_sz)<0){
-            printf("Fail to send access error signal");
-            free(buffer);
-            exit(1); }
         char* path = "/home/phuongnam/transmit/";
         size_t len = strlen(path);
         char* path_buffer = malloc(len+strlen(buffer));
@@ -188,7 +180,8 @@ int main(int argc, char **argv){
                         exit(1);
                         }
                 }   
-                else {
+                else if (size != BUFFLEN) {
+                    printf("Total size from server: %ld",t*BUFFLEN+size);
                     memset(buffer,'\0',BUFFLEN);
                     strcpy(buffer,"OVER");
                     if (sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr*)&clientadd, cli_ad_sz )<0){
@@ -196,13 +189,15 @@ int main(int argc, char **argv){
                         free(buffer);
                         exit(1);
                         }
-                    printf("Total size from server: %ld",t*BUFFLEN+size);
+                    
                     break;
                 }
             }
 
         }        
-        }}}
+        }}
+        
+        }
         
     free(buffer);
     close(serverSocketfd);
