@@ -144,14 +144,14 @@ int main(int argc, char **argv){
                 free(buffer);
                 exit(1);
             }
-            printf("%s",buffer);
+            
             memset(buffer,'\0',BUFFLEN); 
             if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0)
             {
                 perror("Buffer content read failed");
                 exit(1);
             }     
-            
+            printf("%s",buffer);
             if (strcmp(buffer,"Again")==0){
                 t++;
             }
