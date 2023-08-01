@@ -25,28 +25,23 @@ void exithandler()
 
 
 void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
-    FILE *fp;
-    if (mode == AFTER) {fp = fopen(file, "ab+");}
-    else if (mode == FIRST) {fp = fopen(file, "wb+");}
-
-    if (fp == NULL){
-        perror("Error reading file\n");
+    int fp = open(file, O_RDWR | O_APPEND | O_CREAT | O_SYNC, 0644);
+    if (fp == -1){
+        perror("Error writing file\n");
         exit(1);
     }
-    long offset = 0;
-    fseek(fp,t*BUFFLEN,SEEK_SET);
-    // printf("Size of file: %ld\n",size);
-    // while (offset < size){
-    for (int i =0; i<size;i++){
-        size_t readnow = fwrite(buffer+offset, 1,1 , fp);
+    off_t offset = 0;
+    for (int i=0; i < size; i++){
+        ssize_t readnow = pwrite(fp, buffer + offset, 1,t*BUFFLEN + offset);
         if (readnow < 0){
-            printf("Write unsuccessful \n");
+            printf("Read unsuccessful \n");
             free(buffer);
-            fclose(fp);
-            exit(1);}
+            close(fp);
+            exit(1);
+        }
         offset = offset+readnow;
     }
-    fclose(fp);
+    close(fp);
     printf("File write complete \n");
 }
 

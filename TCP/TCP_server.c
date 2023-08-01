@@ -26,27 +26,21 @@ void exithandler()
 }
 
 long file_transfer(char* buffer, int t){
-    FILE *fp = fopen(buffer, "rb" );
-    if (fp == NULL){
-        perror("Error reading file");
+    int fp = open(buffer, O_RDONLY);
+    if (fp == -1){
+        perror("Error reading file\n");
         exit(1);
     }
-    // struct stat st;
-    fseek(fp,(t)*BUFFLEN,SEEK_SET);
-    // long size = ftell(fp);
-    // printf("%ld \n",size);
-    // fseek(fp,0,SEEK_SET);
-    // memset(buffer,'\0',BUFFLEN);
     long offset = 0;
-    while  (offset<BUFFLEN){
-        size_t readnow = fread(buffer+offset, 1,1, fp);
-        if (readnow == 0) break;
-        else offset ++ ;
+    while (offset < BUFFLEN){
+        ssize_t readnow = pread(fp, buffer+offset, 1, t*BUFFLEN + offset);
+        if (readnow == 0){
+            break;
+        }
+        else offset = offset+readnow;
     }
-    // printf("again: %s",buffer);
-    
-    fclose(fp);
-    printf("Socket read complete part %d ready to send \n",t);
+    close(fp);
+    printf("File read complete \n");
     return offset;
 }
 
