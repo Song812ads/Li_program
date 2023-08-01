@@ -138,7 +138,7 @@ int main(int argc, char **argv){
               
             // Gửi tín hiệu đã hoàn tất đợi nhận từ server đã kết thúc nhận dữ liệu hay sẽ nhận tiếp
             strcpy(buffer,"FIN");
-            printf("%s\n",buffer);
+
             if (sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0){
                 printf("Fail to send success read file signal");  
                 free(buffer);
@@ -150,10 +150,11 @@ int main(int argc, char **argv){
                 perror("Buffer content read failed");
                 exit(1);
             }     
+            
             if (strcmp(buffer,"Again")==0){
                 t++;
             }
-            else {
+            else if (strcmp(buffer,"FIN")==0){
                     printf("Read total file size: %ld\n",size);
                     printf("Connection close\n");
                 }
