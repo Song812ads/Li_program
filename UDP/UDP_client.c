@@ -69,7 +69,7 @@ int main(int argc, char **argv){
     serveradd.sin_family = AF_INET;
     char* port = argv[2];
     serveradd.sin_port = htons ( atoi(port) );
-    if (inet_addr(argv[1]) <= 0) {
+    if (inet_pton (AF_INET, argv[1], &serveradd.sin_addr) <= 0) {
         perror("Convert binary fail"); 
         close(socketfd);
         exit(1);
