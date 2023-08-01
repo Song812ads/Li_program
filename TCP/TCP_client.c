@@ -42,7 +42,7 @@ void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
         offset = offset+readnow;
     }
     close(fp);
-    printf("File write complete \n");
+    printf("File write complete part %d \n",t);
 }
 
 int main(int argc, char **argv){
@@ -140,7 +140,6 @@ int main(int argc, char **argv){
               
             // Gửi tín hiệu đã hoàn tất đợi nhận từ server đã kết thúc nhận dữ liệu hay sẽ nhận tiếp
             strcpy(buffer,"FIN");
-            printf("%s\n",buffer);
             if (send(socketfd,buffer,sizeof(buffer),0)<0){
                 printf("Fail to send success read file signal");  
                 free(buffer);
@@ -173,7 +172,7 @@ int main(int argc, char **argv){
                         free(buffer);
                         exit(1);
                     }
-                    printf("Read total file size: %ld\n",size);
+                    printf("Read total file size: %ld\n",t*BUFFLEN+size);
                     printf("Connection close\n");
                 }
                 break;

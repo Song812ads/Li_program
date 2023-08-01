@@ -40,7 +40,7 @@ long file_transfer(char* buffer, int t){
         else offset = offset+readnow;
     }
     close(fp);
-    printf("File read complete \n");
+//    printf("File read complete \n");
     return offset;
 }
 
@@ -121,6 +121,7 @@ int main(int argc, char **argv){
         if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
             printf("Fail to send receive signal");
             free(buffer);
+            close(serverSocketfd);
             exit(1);
         }}
 
@@ -139,6 +140,7 @@ int main(int argc, char **argv){
         if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
             printf("Fail to send access error signal");
             free(buffer);
+            close(serverSocketfd);
             exit(1); 
     }}
 
@@ -148,6 +150,7 @@ int main(int argc, char **argv){
         if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
             printf("Fail to send success read file signal");  
             free(buffer);
+            close(serverSocketfd);
             exit(1);
         }
 
@@ -156,6 +159,8 @@ int main(int argc, char **argv){
     {
         printf(" Knowing the status of the file on server side failed\n");
         perror("recv failed");
+        free(buffer);
+        close(serverSocketfd);
         exit(1);
     }
     // Đợi client phản hồi sẵn sàng nhận dữ liệu
@@ -173,14 +178,14 @@ int main(int argc, char **argv){
             if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
                 printf("Fail to send file read");  
                 free(buffer);
-                exit(1);
+                goto end;
             }
             memset(buffer,'\0',BUFFLEN);                   
             if(recv(clientSocketfd,buffer,BUFFLEN,0)<0)
         {
             printf(" Knowing the status of the file on server side failed\n");
             perror("recv failed");
-            exit(1);
+            goto end;
         }
 
             if (strcmp(buffer,"size") == 0){
@@ -189,8 +194,7 @@ int main(int argc, char **argv){
             long  size = file_transfer(buffer,t);
             if ( send(clientSocketfd,buffer,BUFFLEN,0)<0){
                 printf("Fail to send file read");  
-                free(buffer);
-                exit(1);
+                goto end;
                 }
 
 
@@ -198,18 +202,17 @@ int main(int argc, char **argv){
             if((recv(clientSocketfd,buffer,BUFFLEN,0)<0))
             {
                 perror("Buffer content read failed");
-                exit(1);
+                goto end;
             }
             // Các bước ACK, FIN để kết thúc giao tiếp TCP/IP hoặc là Again để tiếp tục vòng nhận dữ liệu
             if (strcmp("FIN",buffer) == 0){
                 if (size == BUFFLEN) {t++;
                     memset(buffer,'\0',BUFFLEN);                   
                     strcpy(buffer,"Again");
-                    printf("Continue sending from server");
+                    printf("Continue sending from server part %d \n",t);
                     if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
                         printf("Fail to send success read file signal");  
-                        free(buffer);
-                        exit(1);
+                        goto end;
                     }
                 }
                 else {
@@ -219,8 +222,7 @@ int main(int argc, char **argv){
                     printf("Sending ACK to close communication\n");
                     if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
                         printf("Fail to send success read file signal");  
-                        free(buffer);
-                        exit(1);
+                        goto end;
                     }
                 
                  sleep(3); 
@@ -229,7 +231,7 @@ int main(int argc, char **argv){
                     if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
                         printf("Fail to send success read file signal");  
                         free(buffer);
-                        exit(1);
+                        goto end;
                     }
                     printf("Sending FIN to close communication\n");
                     memset(buffer,'\0',BUFFLEN);                   
@@ -237,7 +239,7 @@ int main(int argc, char **argv){
                 {
                     printf(" Knowing the status of the file on server side failed\n");
                     perror("recv failed");
-                    exit(1);
+                    goto end;
                 }
                     if (strcmp(buffer,"ACK")==0){
                         printf("Size from server: %ld \n",t*BUFFLEN+size);
@@ -246,6 +248,7 @@ int main(int argc, char **argv){
                      break;
             }}}
             }}}
+end:
     free(buffer);
     free(path_buffer);
     close(clientSocketfd);
