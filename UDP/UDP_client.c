@@ -89,7 +89,13 @@ int main(int argc, char **argv){
         perror("Checkin failed");
         exit(1);
     }
-    if (strcmp(buffer,"Success")==0){
+
+    if (strcmp(buffer,"Error")==0) {
+        printf("%s download fail \n",argv[3]);
+        exit(1);
+    }
+
+    else{
         printf("%s ready to download \n",argv[3]);
         memset(buffer,'\0',BUFFLEN);                   
         strcpy(buffer,"Ready");
@@ -154,10 +160,7 @@ int main(int argc, char **argv){
                 break;
         }}
         
-    else {
-        printf("%s download fail \n",argv[3]);
-        exit(1);
-    }
+
 
     free(buffer);
     close(socketfd);
