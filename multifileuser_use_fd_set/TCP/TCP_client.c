@@ -85,28 +85,11 @@ int main(int argc, char **argv){
     char filename[40];
     memset(filename,'\0',40); 
     while (1){
-        do {
         printf("Hello User! Press A to see all file available or enter filename: ");
         scanf("%s",buffer);
         strcpy(filename,buffer);
 
-        if(send(socketfd,buffer,BUFFLEN,0)<0)              
-        {
-            printf("sending the file name to the server side failed\n");
-            perror("send failed");
-            exit(1);
-        }
-        memset(buffer,'\0',BUFFLEN);     
-                      
-        if(recv(socketfd,buffer,BUFFLEN,0)<0)
-        {
-            perror("Checkin failed");
-            exit(1);
-        }
-        if (strcmp(filename,"A")==0) printf("File on server: %s\n",buffer);
-     } while (strcmp(filename,"A")==0);
-    
-    
+
 
     if ((strcmp(buffer,"Error")==0)){
         printf("File don't exist. Check again");
