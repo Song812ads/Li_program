@@ -128,8 +128,6 @@ int main(int argc, char **argv){
    
         file_transfer(filename ,buffer,size,0,FIRST);
         break;
-
-
     }}
 
 

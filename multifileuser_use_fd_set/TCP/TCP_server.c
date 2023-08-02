@@ -90,7 +90,7 @@ int main(int argc, char **argv){
 
     bzero (&serveradd, sizeof(serveradd));
     serveradd.sin_family = AF_INET;
-    serveradd.sin_port = htons ( 6385 );
+    serveradd.sin_port = htons ( 6375 );
     serveradd.sin_addr.s_addr = htonl(INADDR_ANY);
 
 
@@ -205,6 +205,7 @@ while (1){
                                 exit(1);
                              }
                             }
+                free(path_buffer);
                 }}}}
             
     free(buffer);
