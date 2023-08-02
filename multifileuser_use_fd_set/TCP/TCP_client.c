@@ -119,7 +119,7 @@ int main(int argc, char **argv){
         //     exit(1);
         // }
         // printf("%ld",size);
-    
+        printf("%s",buffer);
         if(recv(socketfd,buffer,BUFFLEN,0)<0)
         {
             perror("Buffer content read failed");
