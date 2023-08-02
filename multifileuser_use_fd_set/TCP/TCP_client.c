@@ -110,12 +110,6 @@ int main(int argc, char **argv){
     }
     else {
         printf("File exist on server ready to download\n");
-        memset(buffer,'\0',BUFFLEN); 
-        if(recv(socketfd,buffer,BUFFLEN,0)<0)
-        {
-            perror("Buffer size read failed");
-            exit(1);
-        }
         long size = atol(buffer);
         // memset(buffer,'\0',BUFFLEN); 
         // strcpy(buffer,"ACK");
