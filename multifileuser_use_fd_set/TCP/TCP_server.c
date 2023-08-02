@@ -179,17 +179,26 @@ while (1){
                     clientSocketfd[i] = 0;
                 }
                 else{
-                    char* path = "/home/phuongnam/transmit/";     
-                    if (strcmp(buffer,"A")==0){
-                        checkfolder(path);
+                    char* path = "/home/phuongnam/transmit/";  
+                    while (strcmp(buffer,"A")==0){
+                        memset(buffer,0,BUFFLEN);
+                        strcpy(buffer,path);
+                        checkfolder(buffer);
+                        // printf("%s",buffer);
                     if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
                         printf("Fail to send access error signal");
                         free(buffer);
                         close(serverSocketfd);
                         exit(1); 
-                    }}
+                    }
+                    memset(buffer,0,BUFFLEN);
+                    if (recv(clientSocketfd[i],buffer,BUFFLEN,0)<0){
+                        exit(1);
+                    }
                     
-                    else {
+                    }
+                    
+                
                     size_t len = strlen(path);
                     char* path_buffer = malloc(len+strlen(buffer));
                     memset(path_buffer,'\0',sizeof(path_buffer));
@@ -233,7 +242,7 @@ while (1){
                 clientSocketfd[i] = 0;
                 close(clientSocketfd[i]);
                 
-                }}}}
+                }}}
             
     free(buffer);
     close(serverSocketfd);
