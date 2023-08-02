@@ -217,15 +217,13 @@ while (1){
                                 close(serverSocketfd);
                                 exit(1);
                              }
-                            }free(path_buffer);
-                            }
-                            }
+                    }
+                            
                 clientSocketfd[i] = 0;
                 close(clientSocketfd[i]);
                 
-                }}
-            
+                free(path_buffer);
+                }}}}
     free(buffer);
     close(serverSocketfd);
-
 }
