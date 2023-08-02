@@ -102,7 +102,7 @@ int main(int argc, char **argv){
         {
             perror("Checkin failed");
             exit(1);
-        printf("File on server: %s\n",buffer);
+        if (strcmp(filename,"A")==0) printf("File on server: %s\n",buffer);
         }} while (strcmp(filename,"A")==0);
     
     
