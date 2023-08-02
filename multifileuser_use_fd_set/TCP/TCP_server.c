@@ -186,7 +186,7 @@ while (1){
                             strcpy(buffer,path_buffer);
                             // printf("Continue sending from server part %d \n",t+1);
                             long  size = file_transfer(buffer,0);
-                            printf("%ld",size);
+                           
                             sprintf(buffer,"%ld",size);
                             if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
                                 printf("Fail to send file read");  
@@ -204,11 +204,7 @@ while (1){
                                 close(serverSocketfd);
                                 exit(1);
                              }
-                            memset(buffer,'\0',BUFFLEN);
-                            int a = recv(clientSocketfd[i],buffer,BUFFLEN,0);
-                            if (strcmp(buffer,"DONE")==0){
-                                printf("Client ip: %s complete service\n",inet_ntoa(clientadd.sin_addr) );
-                            }}
+                            }
                 }}}}
             
     free(buffer);
