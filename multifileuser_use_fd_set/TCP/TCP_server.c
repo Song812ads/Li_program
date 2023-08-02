@@ -173,7 +173,7 @@ while (1){
                     strcpy(path_buffer,path);
                     strcpy(path_buffer+len,buffer);
                     if (checkfile(path_buffer)==0){
-                        printf("Error access file\n");
+                    
                         memset(buffer,'\0', BUFFLEN);
                         strcpy(buffer, "Error");
                         if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
@@ -194,27 +194,27 @@ while (1){
                                 close(serverSocketfd);
                                 exit(1);
                              }
-                            memset(buffer,'\0',BUFFLEN);
-                            if (recv(clientSocketfd[i],buffer,BUFFLEN,0)<0){
-                                exit(1);
-                            }
-                            if (strcmp(buffer,"ACK")==0){
-                            memset(buffer,'\0',BUFFLEN);
-                            strcpy(buffer,path_buffer);
-                            // printf("Continue sending from server part %d \n",t+1);
-                            size = file_transfer(buffer,0);
-                            printf("Continue sending from server part %d \n",0+1);
-                            if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
-                                printf("Fail to send file read");  
-                                free(buffer);
-                                close(serverSocketfd);
-                                exit(1);
-                             }
-                            memset(buffer,'\0',BUFFLEN);
-                            int a = recv(clientSocketfd[i],buffer,BUFFLEN,0);
-                            if (strcmp(buffer,"DONE")==0){
-                                printf("Client ip: %s complete service\n",inet_ntoa(clientadd.sin_addr) );
-                            }}
+                            // memset(buffer,'\0',BUFFLEN);
+                            // if (recv(clientSocketfd[i],buffer,BUFFLEN,0)<0){
+                            //     exit(1);
+                            // }
+                            // if (strcmp(buffer,"ACK")==0){
+                            // memset(buffer,'\0',BUFFLEN);
+                            // strcpy(buffer,path_buffer);
+                            // // printf("Continue sending from server part %d \n",t+1);
+                            // size = file_transfer(buffer,0);
+                            // printf("Continue sending from server part %d \n",0+1);
+                            // if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
+                            //     printf("Fail to send file read");  
+                            //     free(buffer);
+                            //     close(serverSocketfd);
+                            //     exit(1);
+                            //  }
+                            // memset(buffer,'\0',BUFFLEN);
+                            // int a = recv(clientSocketfd[i],buffer,BUFFLEN,0);
+                            // if (strcmp(buffer,"DONE")==0){
+                            //     printf("Client ip: %s complete service\n",inet_ntoa(clientadd.sin_addr) );
+                            // }}
                         
 
                         
