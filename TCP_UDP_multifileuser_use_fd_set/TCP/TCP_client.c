@@ -83,6 +83,11 @@ int main(int argc, char **argv){
 
     memset(buffer,'\0',BUFFLEN);                   
     strcpy(buffer,argv[3]);
+
+    while (1){
+
+    printf("Nhap file muon gui: ");
+    scanf("%s",buffer);
     if(send(socketfd,buffer,BUFFLEN,0)<0)              
     {
         printf("sending the file name to the server side failed\n");
@@ -91,13 +96,16 @@ int main(int argc, char **argv){
     }
     
     // Kiểm tra xem server đã sẵn sàng gửi dữ liệu chưa
+
     memset(buffer,'\0',BUFFLEN);                   
     if(recv(socketfd,buffer,BUFFLEN,0)<0)
     {
         perror("Checkin failed");
         exit(1);
     }
-    printf("Message from server: %s\n",buffer);
+    }
+
+
     // if (strcmp(buffer,"Success")==0){
     //     printf("%s ready to download \n",argv[3]);
     //     memset(buffer,'\0',BUFFLEN);                   

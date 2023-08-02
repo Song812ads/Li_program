@@ -165,19 +165,38 @@ while (1){
                     close(sd);
                     clientSocketfd[i] = 0;
                 }
-                else{
-                    memset(buffer,'\0', BUFFLEN);
-                    strcpy(buffer,"Hello client");
-                    if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
-                        printf("Fail to send access error signal");
-                        free(buffer);
-                        close(serverSocketfd);
-                        exit(1); 
+                else{              
+                    char* path = "/home/phuongnam/transmit/";
+                    size_t len = strlen(path);
+                    char* path_buffer = malloc(len+strlen(buffer));
+                    memset(path_buffer,'\0',sizeof(path_buffer));
+                    strcpy(path_buffer,path);
+                    strcpy(path_buffer+len,buffer);
+                    if (checkfile(path_buffer)==0){
+                        printf("Error access file\n");
+                        memset(buffer,'\0', BUFFLEN);
+                        strcpy(buffer,"Error");
+                        if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
+                            printf("Fail to send access error signal");
+                            free(buffer);
+                            close(serverSocketfd);
+                            exit(1); 
+                    }}
+                    else {
+                        memset(buffer,'\0', BUFFLEN);
+                        strcpy(buffer,"Succes");
+                        if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
+                            printf("Fail to send access error signal");
+                            free(buffer);
+                            close(serverSocketfd);
+                            exit(1);
+                    }
+                        
+                    }
             }
-                }
-            }
-        }
-
+                }}}
+            
+        
     // if ((clientSocketfd = accept(serverSocketfd, (struct sockaddr*) &clientadd, &clientlength))==-1){
     //     printf("Server accept fail");
     //     exit(1);
@@ -206,7 +225,7 @@ while (1){
 
 
 
-}
+// }
 
 
     // char* path = "/home/phuongnam/transmit/";
@@ -332,7 +351,7 @@ while (1){
     //                  break;
     //         }}}
     //         }}}
-end:
+
     free(buffer);
     // free(path_buffer);
     // close(clientSocketfd);
