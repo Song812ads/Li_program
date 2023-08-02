@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
-#define BUFFLEN 500
+#define BUFFLEN 50000
 typedef enum {FIRST, AFTER} file_mode;
 
 void pipebroke()
@@ -125,24 +125,20 @@ int main(int argc, char **argv){
             perror("Buffer content read failed");
             exit(1);
         }
-        printf("%s",buffer);
+   
         file_transfer(filename ,buffer,size,0,FIRST);
         memset(buffer,'\0',BUFFLEN);
         printf("More file ? Y/N\n");
         scanf("%s",buffer);
-        if (strcmp(buffer,"N")==0){
-            memset(buffer,'\0',BUFFLEN); 
-            strcpy(buffer,"DONE");
-            if (send(socketfd,buffer,BUFFLEN,0)<0){
+        memset(buffer,'\0',BUFFLEN); 
+        strcpy(buffer,"DONE");
+        if (send(socketfd,buffer,BUFFLEN,0)<0){
                 printf("Fail to send success read file signal");  
                 free(buffer);
                 exit(1);
             }
             break;
-        }
-        else if (strcmp(buffer,"Y")==0){
-        }
-        else break; 
+
 
     }}
 

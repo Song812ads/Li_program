@@ -12,7 +12,7 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#define BUFFLEN 500
+#define BUFFLEN 50000
 #define MAX_CLIENTS 2
 
 void pipebroke()
@@ -194,14 +194,8 @@ while (1){
                                 close(serverSocketfd);
                                 exit(1);
                              }
-                            // memset(buffer,'\0',BUFFLEN);
-                            // if (recv(clientSocketfd[i],buffer,BUFFLEN,0)<0){
-                            //     exit(1);
-                            // }
-                            // if (strcmp(buffer,"ACK")==0){
                             memset(buffer,'\0',BUFFLEN);
                             strcpy(buffer,path_buffer);
-                            // printf("Continue sending from server part %d \n",t+1);
                             size = file_transfer(buffer,0);
                             printf("Continue sending from server part %d \n",0+1);
                             if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
@@ -215,173 +209,9 @@ while (1){
                             if (strcmp(buffer,"DONE")==0){
                                 printf("Client ip: %s complete service\n",inet_ntoa(clientadd.sin_addr) );
                             }}
-                        
-
-                        
-                        
-                    
-            // }
                 }}}}
             
-        
-    // if ((clientSocketfd = accept(serverSocketfd, (struct sockaddr*) &clientadd, &clientlength))==-1){
-    //     printf("Server accept fail");
-    //     exit(1);
-    // }
-    //  else printf("Server Accepted\n");
-    // printf("Client here!\n");
-    // printf("IP address is: %s\n", inet_ntoa(clientadd.sin_addr));
-    // printf("port is: %d\n", (int) ntohs(clientadd.sin_port));
-    // memset(buffer,'\0', BUFFLEN);
-    // if (valread=recv(clientSocketfd,buffer,BUFFLEN,0)<0){
-    //     printf("Receive error");
-    //     memset(buffer,'\0', BUFFLEN);
-    //     exit(1);
-    //     }
-    // if strcmp(buffer,"A"){
-
-    // }
-    // printf("File request from client: %s \n",buffer);
-
-
-
-    //   if( setsockopt (clientSocketfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0 )
-    //     printf( "setsockopt fail\n" );
-    //   if( setsockopt (clientSocketfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv)) < 0 )
-    //     printf( "setsockopt fail\n" ) ;
-
-
-
-// }
-
-
-    // char* path = "/home/phuongnam/transmit/";
-    // size_t len = strlen(path);
-    // char* path_buffer = malloc(len+strlen(buffer));
-    // memset(path_buffer,'\0',sizeof(path_buffer));
-    // strcpy(path_buffer,path);
-    // strcpy(path_buffer+len,buffer);
-
-    // // Kiểm tra khả năng truy cập file:
-    // if (checkfile(path_buffer)==0){
-    //     printf("Error access file\n");
-    //     memset(buffer,'\0', BUFFLEN);
-    //     strcpy(buffer,"Error");
-    //     if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
-    //         printf("Fail to send access error signal");
-    //         free(buffer);
-    //         close(serverSocketfd);
-    //         exit(1); 
-    // }}
-
-    // else {
-    //     memset(buffer,'\0',BUFFLEN);                   
-    //     strcpy(buffer,"Success");
-    //     if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
-    //         printf("Fail to send success read file signal");  
-    //         free(buffer);
-    //         close(serverSocketfd);
-    //         exit(1);
-    //     }
-
-    //     memset(buffer,'\0',BUFFLEN);                   
-    //     if(recv(clientSocketfd,buffer,BUFFLEN,0)<0)
-    // {
-    //     printf(" Knowing the status of the file on server side failed\n");
-    //     perror("recv failed");
-    //     free(buffer);
-    //     close(serverSocketfd);
-    //     exit(1);
-    // }
-    // // Đợi client phản hồi sẵn sàng nhận dữ liệu
-    //     if (strcmp(buffer,"Ready")==0){
-    //     int t = 0; // ghi lại số lần dẵ chuyển
-
-    // // Tạo vòng lặp gửi dữ liệu với từng buffer. VD 1 file 4k3 sẽ gửi bằng 9 lần với 8 lần max 500 byte và 1 lần 300 bytes. 
-    //     while (1){
-    //         memset(buffer,'\0',BUFFLEN);
-    //         strcpy(buffer,path_buffer);
-    //         long  size = file_transfer(buffer,t);
-    //         sprintf(buffer,"%ld",size);
-    // // Gửi kích thuốc khi kích thước =500 có thể hiểu là vẫn còn thêm thông tin. client sẽ chỉnh mode mở là append nếu có 1 lần kích thuốc =500.
-    // // Dê mode mở bth nếu như k có lần nào 500 byte được chuyển
-    //         if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
-    //             printf("Fail to send file read");  
-    //             free(buffer);
-    //             goto end;
-    //         }
-    //         memset(buffer,'\0',BUFFLEN);                   
-    //         if(recv(clientSocketfd,buffer,BUFFLEN,0)<0)
-    //     {
-    //         printf(" Knowing the status of the file on server side failed\n");
-    //         perror("recv failed");
-    //         goto end;
-    //     }
-
-    //         if (strcmp(buffer,"size") == 0){
-    //         memset(buffer,'\0',BUFFLEN);
-    //         strcpy(buffer,path_buffer);
-    //         long  size = file_transfer(buffer,t);
-    //         if ( send(clientSocketfd,buffer,BUFFLEN,0)<0){
-    //             printf("Fail to send file read");  
-    //             goto end;
-    //             }
-
-
-    //         memset(buffer,'\0',sizeof(buffer)); 
-    //         if((recv(clientSocketfd,buffer,BUFFLEN,0)<0))
-    //         {
-    //             perror("Buffer content read failed");
-    //             goto end;
-    //         }
-    //         // Các bước ACK, FIN để kết thúc giao tiếp TCP/IP hoặc là Again để tiếp tục vòng nhận dữ liệu
-    //         if (strcmp("FIN",buffer) == 0){
-    //             if (size == BUFFLEN) {t++;
-    //                 memset(buffer,'\0',BUFFLEN);                   
-    //                 strcpy(buffer,"Again");
-                    
-    //                 if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
-    //                     printf("Fail to send success read file signal");  
-    //                     goto end;
-    //                 }
-    //             }
-    //             else {
-    //                 memset(buffer,'\0',BUFFLEN);                   
-    //                 strcpy(buffer,"ACK");
-
-    //                 printf("Sending ACK to close communication\n");
-    //                 if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
-    //                     printf("Fail to send success read file signal");  
-    //                     goto end;
-    //                 }
-                
-    //              sleep(3); 
-    //                 memset(buffer,'\0',BUFFLEN);                   
-    //                 strcpy(buffer,"FIN");
-    //                 if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
-    //                     printf("Fail to send success read file signal");  
-    //                     free(buffer);
-    //                     goto end;
-    //                 }
-    //                 printf("Sending FIN to close communication\n");
-    //                 memset(buffer,'\0',BUFFLEN);                   
-    //                 if(recv(clientSocketfd,buffer,BUFFLEN,0)<0)
-    //             {
-    //                 printf(" Knowing the status of the file on server side failed\n");
-    //                 perror("recv failed");
-    //                 goto end;
-    //             }
-    //                 if (strcmp(buffer,"ACK")==0){
-    //                     printf("Size from server: %ld \n",t*BUFFLEN+size);
-    //                     printf("Server finish service. Ready to close\n");
-    //                 }
-    //                  break;
-    //         }}}
-    //         }}}
-
     free(buffer);
-    // free(path_buffer);
-    // close(clientSocketfd);
     close(serverSocketfd);
 
 }
