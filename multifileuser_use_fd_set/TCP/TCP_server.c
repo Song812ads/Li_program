@@ -192,7 +192,8 @@ while (1){
                             exit(1); 
                     }
                         memset(buffer,'\0',BUFFLEN);
-                        if(recv(clientSocketfd[i],buffer,BUFFLEN,0)<0) exit(1);       
+                        if(recv(clientSocketfd[i],buffer,BUFFLEN,0)<0) exit(1);      
+                         
                     }
                     else{
                     size_t len = strlen(path);
@@ -231,11 +232,12 @@ while (1){
                                 exit(1);
                              }
                     }
-                            
+                    free(path_buffer);
+                }
                 clientSocketfd[i] = 0;
                 close(clientSocketfd[i]);
-                free(path_buffer);
-                }}}}}
+                
+                }}}}
     free(buffer);
     close(serverSocketfd);
 }

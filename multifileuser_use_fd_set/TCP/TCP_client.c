@@ -85,8 +85,6 @@ int main(int argc, char **argv){
     char filename[40];
     memset(filename,'\0',40); 
     while (1){
-
-    
         printf("Hello User! Press A to see all file available or enter filename: ");
         scanf("%s",buffer);
         if (send(socketfd,buffer,BUFFLEN,0)<0){
@@ -103,8 +101,6 @@ int main(int argc, char **argv){
             printf("File from server: %s\n",buffer);
             break;}
         
-    
-
     else {
         if ((strcmp(buffer,"Error")==0)){
         printf("File don't exist. Check again");
