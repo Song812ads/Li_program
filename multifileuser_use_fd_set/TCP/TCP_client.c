@@ -88,6 +88,7 @@ int main(int argc, char **argv){
     printf("Hello User! Press A to see all file available or enter filename: ");
     scanf("%s",buffer);
     strcpy(filename,buffer);
+
     if(send(socketfd,buffer,BUFFLEN,0)<0)              
     {
         printf("sending the file name to the server side failed\n");
@@ -116,15 +117,17 @@ int main(int argc, char **argv){
             exit(1);
         }
         long size = atol(buffer);
+        printf("%d",size);
     
         if(recv(socketfd,buffer,BUFFLEN,0)<0)
         {
             perror("Buffer content read failed");
             exit(1);
         }
+        printf("%s",buffer);
         file_transfer(filename ,buffer,size,0,FIRST);
-        bzero(buffer,BUFFLEN);
-        printf("More file ? Y/N");
+        memset(buffer,'\0',BUFFLEN);
+        printf("More file ? Y/N\n");
         scanf("%s",buffer);
         if (strcmp(buffer,"N")==0){
             memset(buffer,'\0',BUFFLEN); 

@@ -41,7 +41,7 @@ long file_transfer(char* buffer, int t){
         else offset = offset+readnow;
     }
     close(fp);
-    printf("Continue sending from server part %d \n",t+1);
+    
 
     return offset;
 }
@@ -166,6 +166,7 @@ while (1){
                     clientSocketfd[i] = 0;
                 }
                 else{              
+                    
                     char* path = "/home/phuongnam/transmit/";
                     size_t len = strlen(path);
                     char* path_buffer = malloc(len+strlen(buffer));
@@ -183,8 +184,6 @@ while (1){
                             exit(1); 
                     }}
                     else {
-
-                        
                             memset(buffer,'\0',BUFFLEN);
                             strcpy(buffer,path_buffer);
                             // printf("Continue sending from server part %d \n",t+1);
@@ -200,7 +199,7 @@ while (1){
                             strcpy(buffer,path_buffer);
                             // printf("Continue sending from server part %d \n",t+1);
                             size = file_transfer(buffer,0);
-                            sprintf(buffer,"%ld",size);
+                            printf("Continue sending from server part %d \n",0+1);
                             if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
                                 printf("Fail to send file read");  
                                 free(buffer);
