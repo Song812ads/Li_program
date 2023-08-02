@@ -108,7 +108,7 @@ int main(int argc, char **argv){
         printf("File don't exist. Check again");
     }
     else {
-        printf("File exist on server ready to download");
+        printf("File exist on server ready to download\n");
         memset(buffer,'\0',BUFFLEN); 
         if(recv(socketfd,buffer,BUFFLEN,0)<0)
         {
