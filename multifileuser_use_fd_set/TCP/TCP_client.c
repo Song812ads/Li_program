@@ -101,9 +101,9 @@ int main(int argc, char **argv){
         if(recv(socketfd,buffer,BUFFLEN,0)<0)
         {
             perror("Checkin failed");
-            exit(1);
+            exit(1);}
         if (strcmp(filename,"A")==0) printf("File on server: %s\n",buffer);
-        }} while (strcmp(filename,"A")==0);
+        } while (strcmp(filename,"A")==0);
     
     
 

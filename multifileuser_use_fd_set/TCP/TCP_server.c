@@ -180,22 +180,24 @@ while (1){
                 }
                 else{
                     char* path = "/home/phuongnam/transmit/";  
+                    printf("%s",buffer);
                     while (strcmp(buffer,"A")==0){
-                        memset(buffer,0,BUFFLEN);
+                        memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,path);
                         checkfolder(buffer);
-                        // printf("%s",buffer);
+                        printf("%s",buffer);
                     if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
                         printf("Fail to send access error signal");
                         free(buffer);
                         close(serverSocketfd);
                         exit(1); 
                     }
-                    memset(buffer,0,BUFFLEN);
+                    memset(buffer,'\0',BUFFLEN);
                     if (recv(clientSocketfd[i],buffer,BUFFLEN,0)<0){
                         exit(1);
                     }
-                    
+                    printf("%s",buffer);    
+
                     }
                     
                 
