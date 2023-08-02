@@ -83,9 +83,10 @@ int main(int argc, char **argv){
 
     memset(buffer,'\0',BUFFLEN);                   
     char filename[40];
+    memset(filename,'\0',BUFFLEN); 
     while (1){
     
-    while (strcmp(filename,"A")==0){
+    do{
         printf("Hello User! Press A to see all file available or enter filename: ");
         scanf("%s",buffer);
         strcpy(filename,buffer);
@@ -101,7 +102,7 @@ int main(int argc, char **argv){
         {
             perror("Checkin failed");
             exit(1);
-        }}
+        }} while (strcmp(buffer,"A")==0);
     
     
 
