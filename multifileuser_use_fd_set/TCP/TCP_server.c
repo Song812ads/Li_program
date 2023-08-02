@@ -175,7 +175,7 @@ while (1){
                     if (checkfile(path_buffer)==0){
                         printf("Error access file\n");
                         memset(buffer,'\0', BUFFLEN);
-                        strcpy(buffer,(char*) 01);
+                        strcpy(buffer, "Error");
                         if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
                             printf("Fail to send access error signal");
                             free(buffer);
@@ -183,15 +183,8 @@ while (1){
                             exit(1); 
                     }}
                     else {
-                        memset(buffer,'\0', BUFFLEN);
-                        strcpy(buffer,(char*) 02);
-                        if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
-                            printf("Fail to send access error signal");
-                            free(buffer);
-                            close(serverSocketfd);
-                            exit(1);
-                    }
-                        while(1){
+
+                        
                             memset(buffer,'\0',BUFFLEN);
                             strcpy(buffer,path_buffer);
                             // printf("Continue sending from server part %d \n",t+1);
@@ -223,7 +216,7 @@ while (1){
 
                         
                         
-                    }
+                    
             }
                 }}}}
             

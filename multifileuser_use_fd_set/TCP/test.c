@@ -139,11 +139,13 @@ int main()
     file_transfer1("anh.jpeg",buffer, size,0,mode);
     free(path_buffer);
     free(buffer);
-    char msg[123]="12354";
+    char msg[123]=01;
+    if (strcmp(msg,(char*) 01)==0) printf("123");
 
     printf("%lld\n",atoll(msg));
     int a = 5000;
     if (a == BUFFLEN) printf("TRue"); else printf("False");
+
     // printf({a});
     return 0;
 

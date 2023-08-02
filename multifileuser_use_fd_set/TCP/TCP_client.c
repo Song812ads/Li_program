@@ -104,11 +104,11 @@ int main(int argc, char **argv){
         exit(1);
     }
     
-    if ((strcmp(buffer,01))==0){
+    if ((strcmp(buffer,"Error")==0)){
         printf("File don't exist. Check again");
     }
-    else if ((strcmp(buffer,02))==0){
-        printf("File exist on server");
+    else {
+        printf("File exist on server ready to download");
         memset(buffer,'\0',BUFFLEN); 
         if(recv(socketfd,buffer,BUFFLEN,0)<0)
         {
@@ -123,7 +123,7 @@ int main(int argc, char **argv){
             exit(1);
         }
         file_transfer(filename ,buffer,size,0,FIRST);
-
+        bzero(buffer,BUFFLEN);
         printf("More file ? Y/N");
         scanf("%s",buffer);
         if (strcmp(buffer,"N")==0){
