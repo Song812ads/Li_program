@@ -117,13 +117,13 @@ int main(int argc, char **argv){
             exit(1);
         }
         long size = atol(buffer);
-        memset(buffer,'\0',BUFFLEN); 
-        strcpy(buffer,"ACK");
-        if (send(socketfd,buffer,BUFFLEN,0)<0){
-            printf("Fail to send success read file signal");  
-            free(buffer);
-            exit(1);
-        }
+        // memset(buffer,'\0',BUFFLEN); 
+        // strcpy(buffer,"ACK");
+        // if (send(socketfd,buffer,BUFFLEN,0)<0){
+        //     printf("Fail to send success read file signal");  
+        //     free(buffer);
+        //     exit(1);
+        // }
         printf("%ld",size);
     
         // if(recv(socketfd,buffer,BUFFLEN,0)<0)

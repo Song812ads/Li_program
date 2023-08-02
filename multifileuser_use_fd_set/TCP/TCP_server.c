@@ -173,7 +173,6 @@ while (1){
                     strcpy(path_buffer,path);
                     strcpy(path_buffer+len,buffer);
                     if (checkfile(path_buffer)==0){
-                    
                         memset(buffer,'\0', BUFFLEN);
                         strcpy(buffer, "Error");
                         if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
@@ -187,6 +186,7 @@ while (1){
                             strcpy(buffer,path_buffer);
                             // printf("Continue sending from server part %d \n",t+1);
                             long  size = file_transfer(buffer,0);
+                            printf("%ld",size);
                             sprintf(buffer,"%ld",size);
                             if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
                                 printf("Fail to send file read");  
