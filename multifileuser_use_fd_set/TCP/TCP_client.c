@@ -53,7 +53,7 @@ int main(int argc, char **argv){
     struct sockaddr_in serveradd;
     unsigned char *buffer = (unsigned char* )malloc(BUFFLEN * sizeof(unsigned char));
     
-    if (argc!=4){
+    if (argc!=3){
         printf("Wrong type <server addresss> <server port>\n");
         exit(1);
     }
@@ -82,12 +82,12 @@ int main(int argc, char **argv){
     }
 
     memset(buffer,'\0',BUFFLEN);                   
-    strcpy(buffer,argv[3]);
-
+    char filename[40];
     while (1){
-
-    printf("Nhap file muon gui: ");
+    
+    printf("Hello User! Press A to see all file available or enter filename: ");
     scanf("%s",buffer);
+    strcpy(filename,buffer);
     if(send(socketfd,buffer,BUFFLEN,0)<0)              
     {
         printf("sending the file name to the server side failed\n");
@@ -103,7 +103,46 @@ int main(int argc, char **argv){
         perror("Checkin failed");
         exit(1);
     }
+    
+    if ((strcmp(buffer,01))==0){
+        printf("File don't exist. Check again");
     }
+    else if ((strcmp(buffer,02))==0){
+        printf("File exist on server");
+        memset(buffer,'\0',BUFFLEN); 
+        if(recv(socketfd,buffer,BUFFLEN,0)<0)
+        {
+            perror("Buffer size read failed");
+            exit(1);
+        }
+        long size = atol(buffer);
+    
+        if(recv(socketfd,buffer,BUFFLEN,0)<0)
+        {
+            perror("Buffer content read failed");
+            exit(1);
+        }
+        file_transfer(filename ,buffer,size,0,FIRST);
+
+        printf("More file ? Y/N");
+        scanf("%s",buffer);
+        if (strcmp(buffer,"N")==0){
+            memset(buffer,'\0',BUFFLEN); 
+            strcpy(buffer,"DONE");
+            if (send(socketfd,buffer,BUFFLEN,0)<0){
+                printf("Fail to send success read file signal");  
+                free(buffer);
+                exit(1);
+            }
+            break;
+        }
+        else if (strcmp(buffer,"Y")==0){
+        }
+        else break; 
+
+    }}
+
+
 
 
     // if (strcmp(buffer,"Success")==0){
