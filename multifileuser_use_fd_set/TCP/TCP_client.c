@@ -102,7 +102,7 @@ int main(int argc, char **argv){
         {
             perror("Checkin failed");
             exit(1);
-        }} while (strcmp(buffer,"A")==0);
+        }} while (strcmp(filename,"A")==0);
     
     
 
