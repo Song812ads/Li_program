@@ -83,7 +83,7 @@ int main(int argc, char **argv){
 
     memset(buffer,'\0',BUFFLEN);                   
     char filename[40];
-    memset(filename,'\0',BUFFLEN); 
+    memset(filename,'\0',40); 
     while (1){
     
     do{
