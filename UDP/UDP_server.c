@@ -44,20 +44,6 @@ long file_transfer(char* buffer, int t){
     return offset;
 }
 
-int checkfile(unsigned char* buffer){
-    if (access(buffer, F_OK) == -1){
-        printf("File don't exist\n");
-        return 0;
-    }
-    else if (access(buffer,R_OK) == -1){
-        printf("Cant read file\n");
-        return 0;
-    }
-    else {
-        printf("File prepare to read\n");
-        return 1;
-    }
-}
 
 int main(int argc, char **argv){
     signal(SIGPIPE,pipebroke);

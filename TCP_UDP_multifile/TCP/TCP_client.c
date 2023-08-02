@@ -81,14 +81,14 @@ int main(int argc, char **argv){
         exit(1);
     }
 
-    memset(buffer,'\0',BUFFLEN);                   
-    strcpy(buffer,argv[3]);
-    if(send(socketfd,buffer,BUFFLEN,0)<0)              
-    {
-        printf("sending the file name to the server side failed\n");
-        perror("send failed");
-        exit(1);
-    }
+    // memset(buffer,'\0',BUFFLEN);                   
+    // strcpy(buffer,argv[3]);
+    // if(send(socketfd,buffer,BUFFLEN,0)<0)              
+    // {
+    //     printf("sending the file name to the server side failed\n");
+    //     perror("send failed");
+    //     exit(1);
+    // }
     
     // Kiểm tra xem server đã sẵn sàng gửi dữ liệu chưa
     memset(buffer,'\0',BUFFLEN);                   
@@ -97,91 +97,92 @@ int main(int argc, char **argv){
         perror("Checkin failed");
         exit(1);
     }
-    if (strcmp(buffer,"Success")==0){
-        printf("%s ready to download \n",argv[3]);
-        memset(buffer,'\0',BUFFLEN);                   
-        strcpy(buffer,"Ready");
-        if (send(socketfd,buffer,BUFFLEN,0)<0){
-            printf("Fail to send success read file signal");  
-            free(buffer);
-            exit(1);
-        }
-    int t =0; // số lần đã chuyển 
-    file_mode mode = FIRST; // mode mở của file
-    // here:
-     while (1){
-        if (t>0) mode = AFTER;
-        // Nhận kích thuốc file từ server
-        memset(buffer,'\0',BUFFLEN); 
-        if(recv(socketfd,buffer,BUFFLEN,0)<0)
-        {
-            perror("Buffer size read failed");
-            exit(1);
-        }
-            long size = atol(buffer);
-        // gửi tin hiêu đã nhận kích thươc file
-            memset(buffer,'\0',BUFFLEN);                   
-            strcpy(buffer,"size");
-            if (send(socketfd,buffer,BUFFLEN,0)<0){
-                printf("Fail to send success read file signal");  
-                free(buffer);
-                exit(1);
-            }
-            // Nhận dữ liệu file từ server
-            memset(buffer,'\0',BUFFLEN); 
-            if(recv(socketfd,buffer,BUFFLEN,0)<0)
-            {
-                perror("Buffer content read failed");
-                exit(1);
-            }
+    printf("Message from server: %s\n",buffer);
+    // if (strcmp(buffer,"Success")==0){
+    //     printf("%s ready to download \n",argv[3]);
+    //     memset(buffer,'\0',BUFFLEN);                   
+    //     strcpy(buffer,"Ready");
+    //     if (send(socketfd,buffer,BUFFLEN,0)<0){
+    //         printf("Fail to send success read file signal");  
+    //         free(buffer);
+    //         exit(1);
+    //     }
+    // int t =0; // số lần đã chuyển 
+    // file_mode mode = FIRST; // mode mở của file
+    // // here:
+    //  while (1){
+    //     if (t>0) mode = AFTER;
+    //     // Nhận kích thuốc file từ server
+    //     memset(buffer,'\0',BUFFLEN); 
+    //     if(recv(socketfd,buffer,BUFFLEN,0)<0)
+    //     {
+    //         perror("Buffer size read failed");
+    //         exit(1);
+    //     }
+    //         long size = atol(buffer);
+    //     // gửi tin hiêu đã nhận kích thươc file
+    //         memset(buffer,'\0',BUFFLEN);                   
+    //         strcpy(buffer,"size");
+    //         if (send(socketfd,buffer,BUFFLEN,0)<0){
+    //             printf("Fail to send success read file signal");  
+    //             free(buffer);
+    //             exit(1);
+    //         }
+    //         // Nhận dữ liệu file từ server
+    //         memset(buffer,'\0',BUFFLEN); 
+    //         if(recv(socketfd,buffer,BUFFLEN,0)<0)
+    //         {
+    //             perror("Buffer content read failed");
+    //             exit(1);
+    //         }
             
-            file_transfer(argv[3],buffer,size,t,mode);
-            memset(buffer,'\0',BUFFLEN);  
+    //         file_transfer(argv[3],buffer,size,t,mode);
+    //         memset(buffer,'\0',BUFFLEN);  
               
-            // Gửi tín hiệu đã hoàn tất đợi nhận từ server đã kết thúc nhận dữ liệu hay sẽ nhận tiếp
-            strcpy(buffer,"FIN");
-            if (send(socketfd,buffer,sizeof(buffer),0)<0){
-                printf("Fail to send success read file signal");  
-                free(buffer);
-                exit(1);
-            }
-            memset(buffer,'\0',BUFFLEN); 
-            if(recv(socketfd,buffer,BUFFLEN,0)<0)
-            {
-                perror("Buffer content read failed");
-                exit(1);
-            }     
-            if (strcmp(buffer,"Again")==0){
-                t++;
-            }
-            else if (strcmp(buffer,"ACK")==0){
-                printf("Receiving ACK from server\n");
-                if(recv(socketfd,buffer,BUFFLEN,0)<0)
-                {
-                    perror("Buffer content read failed");
-                    exit(1);
-                }  
+    //         // Gửi tín hiệu đã hoàn tất đợi nhận từ server đã kết thúc nhận dữ liệu hay sẽ nhận tiếp
+    //         strcpy(buffer,"FIN");
+    //         if (send(socketfd,buffer,sizeof(buffer),0)<0){
+    //             printf("Fail to send success read file signal");  
+    //             free(buffer);
+    //             exit(1);
+    //         }
+    //         memset(buffer,'\0',BUFFLEN); 
+    //         if(recv(socketfd,buffer,BUFFLEN,0)<0)
+    //         {
+    //             perror("Buffer content read failed");
+    //             exit(1);
+    //         }     
+    //         if (strcmp(buffer,"Again")==0){
+    //             t++;
+    //         }
+    //         else if (strcmp(buffer,"ACK")==0){
+    //             printf("Receiving ACK from server\n");
+    //             if(recv(socketfd,buffer,BUFFLEN,0)<0)
+    //             {
+    //                 perror("Buffer content read failed");
+    //                 exit(1);
+    //             }  
                 
-                if (strcmp(buffer,"FIN") ==0){
-                    printf("Receiving FIN from server\n");
-                    memset(buffer,'\0',BUFFLEN);                   
-                    strcpy(buffer,"ACK");
-                    printf("Sending ACK to server\n");
-                    if (send(socketfd,buffer,BUFFLEN,0)<0){
-                        printf("Fail to send success read file signal");  
-                        free(buffer);
-                        exit(1);
-                    }
-                    printf("Read total file size: %ld\n",t*BUFFLEN+size);
-                    printf("Connection close\n");
-                }
-                break;
-        }}}
+    //             if (strcmp(buffer,"FIN") ==0){
+    //                 printf("Receiving FIN from server\n");
+    //                 memset(buffer,'\0',BUFFLEN);                   
+    //                 strcpy(buffer,"ACK");
+    //                 printf("Sending ACK to server\n");
+    //                 if (send(socketfd,buffer,BUFFLEN,0)<0){
+    //                     printf("Fail to send success read file signal");  
+    //                     free(buffer);
+    //                     exit(1);
+    //                 }
+    //                 printf("Read total file size: %ld\n",t*BUFFLEN+size);
+    //                 printf("Connection close\n");
+    //             }
+    //             break;
+    //     }}}
         
-    else if (strcmp(buffer,"Error")==0){
-        printf("%s download fail \n",argv[3]);
-        exit(1);
-    }
+    // else if (strcmp(buffer,"Error")==0){
+    //     printf("%s download fail \n",argv[3]);
+    //     exit(1);
+    // }
 
     free(buffer);
     close(socketfd);
