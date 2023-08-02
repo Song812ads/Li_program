@@ -106,7 +106,7 @@ int main(int argc, char **argv){
 
     bzero (&serveradd, sizeof(serveradd));
     serveradd.sin_family = AF_INET;
-    serveradd.sin_port = htons ( 6375 );
+    serveradd.sin_port = htons ( 6315 );
     serveradd.sin_addr.s_addr = htonl(INADDR_ANY);
 
 
@@ -197,9 +197,7 @@ while (1){
                     else {
                             memset(buffer,'\0',BUFFLEN);
                             strcpy(buffer,path_buffer);
-                            // printf("Continue sending from server part %d \n",t+1);
                             long  size = file_transfer(buffer,0);
-                           
                             sprintf(buffer,"%ld",size);
                             if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
                                 printf("Fail to send file read");  

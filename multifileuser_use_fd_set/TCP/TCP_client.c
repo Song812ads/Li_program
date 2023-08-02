@@ -87,6 +87,9 @@ int main(int argc, char **argv){
     while (1){
         printf("Hello User! Press A to see all file available or enter filename: ");
         scanf("%s",buffer);
+        if (send(socketfd,buffer,BUFFLEN,0)<0){
+            exit(1);
+        }
         strcpy(filename,buffer);
         memset(buffer,'\0',BUFFLEN);
         if(recv(socketfd,buffer,BUFFLEN,0)<0)
