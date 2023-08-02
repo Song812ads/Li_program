@@ -81,14 +81,14 @@ int main(int argc, char **argv){
         exit(1);
     }
 
-    // memset(buffer,'\0',BUFFLEN);                   
-    // strcpy(buffer,argv[3]);
-    // if(send(socketfd,buffer,BUFFLEN,0)<0)              
-    // {
-    //     printf("sending the file name to the server side failed\n");
-    //     perror("send failed");
-    //     exit(1);
-    // }
+    memset(buffer,'\0',BUFFLEN);                   
+    strcpy(buffer,argv[3]);
+    if(send(socketfd,buffer,BUFFLEN,0)<0)              
+    {
+        printf("sending the file name to the server side failed\n");
+        perror("send failed");
+        exit(1);
+    }
     
     // Kiểm tra xem server đã sẵn sàng gửi dữ liệu chưa
     memset(buffer,'\0',BUFFLEN);                   

@@ -141,22 +141,22 @@ while (1){
         
             //send new connection greeting message
               
-            puts("Welcome message sent successfully");
               
             //add new socket to array of sockets
-            for (int i = 0; i < MAX_CLIENTS+1; i++) 
+            for (int i = 0; i < MAX_CLIENTS; i++) 
             {
                 //if position is empty
                 if( clientSocketfd[i] == 0 )
                 {
                     clientSocketfd[i] = new_socket;
-                    printf("Adding to list of sockets as %d\n" , i);
+                    printf("Adding to list of sockets as %d\n" , i+1);
                      
                     break;
                 }
             }
         }
-        for (int i =0; i<MAX_CLIENTS + 1; i++){
+
+        for (int i =0; i<MAX_CLIENTS; i++){
             sd = clientSocketfd[i];
             if (FD_ISSET(sd,&readfds)){
                 if (valread = read(sd,buffer,BUFFLEN)==0){
@@ -166,7 +166,7 @@ while (1){
                     clientSocketfd[i] = 0;
                 }
                 else{
-                    bzero(buffer,BUFFLEN);
+                    memset(buffer,'\0', BUFFLEN);
                     strcpy(buffer,"Hello client");
                     if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
                         printf("Fail to send access error signal");
