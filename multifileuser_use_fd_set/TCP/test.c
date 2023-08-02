@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <dirent.h>
 #define BUFFLEN 5000
 typedef enum {FIRST, AFTER} file_mode;
 
@@ -66,6 +67,21 @@ void file_transfer1(char* file, char* buffer, long size, int t, file_mode mode){
     close(fp);
     printf("File write complete \n");
 }
+
+void checkfolder(unsigned char* buffer){
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(buffer);
+    memset(buffer,0,BUFFLEN);
+    if (d) {
+        while ((dir = readdir(d)) != NULL) {
+        strcat(buffer,dir->d_name);
+        strcat(buffer,"     ");
+        }
+        closedir(d);
+    }
+}
+
 
 // long file_transfer(char* buffer, int t){
 //     FILE *fp = fopen(buffer, "rb" );
@@ -138,13 +154,19 @@ int main()
     file_mode mode = FIRST;
     file_transfer1("anh.jpeg",buffer, size,0,mode);
     free(path_buffer);
-    free(buffer);
-    char msg[123]=01;
-    if (strcmp(msg,(char*) 01)==0) printf("123");
+ 
+    // char msg[123]=01;
+    // if (strcmp(msg,(char*) 01)==0) printf("123");
 
-    printf("%lld\n",atoll(msg));
+    // printf("%lld\n",atoll(msg));
     int a = 5000;
     if (a == BUFFLEN) printf("TRue"); else printf("False");
+ 
+    printf("\n");
+    memset(buffer,'\0',BUFFLEN);
+    strcpy(buffer,path);
+    checkfolder(buffer);
+    printf("%s",buffer);
 
     // printf({a});
     return 0;

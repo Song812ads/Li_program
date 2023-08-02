@@ -12,6 +12,7 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <dirent.h>
 #define BUFFLEN 50000
 #define MAX_CLIENTS 2
 
@@ -45,6 +46,21 @@ long file_transfer(char* buffer, int t){
 
     return offset;
 }
+
+void checkfolder(unsigned char* buffer){
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(buffer);
+    memset(buffer,0,BUFFLEN);
+    if (d) {
+        while ((dir = readdir(d)) != NULL) {
+        strcat(buffer,dir->d_name);
+        strcat(buffer,"     ");
+        }
+        closedir(d);
+    }
+}
+
 
 int checkfile(unsigned char* buffer){
     if (access(buffer, F_OK) == -1){
@@ -138,9 +154,6 @@ while (1){
             //inform user of socket number - used in send and receive commands
             printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_socket , inet_ntoa(clientadd.sin_addr) 
             , ntohs(clientadd.sin_port));
-        
-            //send new connection greeting message
-              
               
             //add new socket to array of sockets
             for (int i = 0; i < MAX_CLIENTS; i++) 
@@ -165,8 +178,18 @@ while (1){
                     close(sd);
                     clientSocketfd[i] = 0;
                 }
-                else{              
-                    char* path = "/home/phuongnam/transmit/";
+                else{
+                    char* path = "/home/phuongnam/transmit/";     
+                    if (strcmp(buffer,"A")==0){
+                        checkfolder(path);
+                    if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
+                        printf("Fail to send access error signal");
+                        free(buffer);
+                        close(serverSocketfd);
+                        exit(1); 
+                    }}
+                    
+                    else {
                     size_t len = strlen(path);
                     char* path_buffer = malloc(len+strlen(buffer));
                     memset(path_buffer,'\0',sizeof(path_buffer));
@@ -197,7 +220,7 @@ while (1){
                             memset(buffer,'\0',BUFFLEN);
                             strcpy(buffer,path_buffer);
                             size = file_transfer(buffer,0);
-                            printf("Continue sending from server part %d \n",0+1);
+                            printf("Sending from server size %ld \n",size);
                             if (send(clientSocketfd[i],buffer,BUFFLEN,0)<0){
                                 printf("Fail to send file read");  
                                 free(buffer);
@@ -206,6 +229,10 @@ while (1){
                              }
                             }
                 free(path_buffer);
+                            }
+                clientSocketfd[i] = 0;
+                close(clientSocketfd[i]);
+                
                 }}}}
             
     free(buffer);
