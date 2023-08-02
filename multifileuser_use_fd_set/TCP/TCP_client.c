@@ -88,7 +88,7 @@ int main(int argc, char **argv){
         printf("Hello User! Press A to see all file available or enter filename: ");
         scanf("%s",buffer);
         strcpy(filename,buffer);
-    
+        memset(buffer,'\0',BUFFLEN);
         if(recv(socketfd,buffer,BUFFLEN,0)<0)
         {
             perror("Buffer content read failed");

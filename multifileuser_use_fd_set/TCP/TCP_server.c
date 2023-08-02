@@ -221,7 +221,6 @@ while (1){
                             
                 clientSocketfd[i] = 0;
                 close(clientSocketfd[i]);
-                
                 free(path_buffer);
                 }}}}
     free(buffer);
