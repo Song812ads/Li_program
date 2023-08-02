@@ -89,7 +89,7 @@ int main(int argc, char **argv){
     char *buffer = (char* )malloc(BUFFLEN * sizeof(char));
     int clientlength = sizeof(clientadd);
     struct timeval tv;
-    tv.tv_sec = 5;
+    tv.tv_sec = 200;
     tv.tv_usec = 0;
 
     for (int i=0;i < MAX_CLIENTS + 1;i++){
@@ -179,8 +179,9 @@ while (1){
                     clientSocketfd[i] = 0;
                 }
                 else{
+                    setsockopt(clientSocketfd[i], SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
                     char* path = "/home/phuongnam/transmit/"; 
-                    while (strcmp(buffer,"A")==0){
+                    if (strcmp(buffer,"A")==0){
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer, path);
                         checkfolder(buffer);        
@@ -191,9 +192,9 @@ while (1){
                             exit(1); 
                     }
                         memset(buffer,'\0',BUFFLEN);
-                        if(recv(clientSocketfd[i],buffer,BUFFLEN,0)<0) exit(1);                           
+                        if(recv(clientSocketfd[i],buffer,BUFFLEN,0)<0) exit(1);       
                     }
-                     
+                    else{
                     size_t len = strlen(path);
                     char* path_buffer = malloc(len+strlen(buffer));
                     memset(path_buffer,'\0',sizeof(path_buffer));
@@ -234,7 +235,7 @@ while (1){
                 clientSocketfd[i] = 0;
                 close(clientSocketfd[i]);
                 free(path_buffer);
-                }}}}
+                }}}}}
     free(buffer);
     close(serverSocketfd);
 }

@@ -86,7 +86,7 @@ int main(int argc, char **argv){
     memset(filename,'\0',40); 
     while (1){
 
-    do{
+    
         printf("Hello User! Press A to see all file available or enter filename: ");
         scanf("%s",buffer);
         if (send(socketfd,buffer,BUFFLEN,0)<0){
@@ -99,10 +99,14 @@ int main(int argc, char **argv){
             perror("Buffer content read failed");
             exit(1);
         }
-        if (strcmp(filename,"A")==0) printf("File from server: %s\n",buffer);
-    } while(strcmp(filename,"A")==0);
+        if (strcmp(filename,"A")==0) {
+            printf("File from server: %s\n",buffer);
+            break;}
+        
     
-    if ((strcmp(buffer,"Error")==0)){
+
+    else {
+        if ((strcmp(buffer,"Error")==0)){
         printf("File don't exist. Check again");
     }
     else {
@@ -117,7 +121,7 @@ int main(int argc, char **argv){
         file_transfer(filename ,buffer,size,0,FIRST);
         printf("File write complete part %ld \n",size);
         break;
-    }}
+    }}}
     free(buffer);
     close(socketfd);
     return 0;
