@@ -166,7 +166,6 @@ while (1){
                     clientSocketfd[i] = 0;
                 }
                 else{              
-                    
                     char* path = "/home/phuongnam/transmit/";
                     size_t len = strlen(path);
                     char* path_buffer = malloc(len+strlen(buffer));
@@ -196,6 +195,11 @@ while (1){
                                 exit(1);
                              }
                             memset(buffer,'\0',BUFFLEN);
+                            if (recv(clientSocketfd[i],buffer,BUFFLEN,0)<0){
+                                exit(1);
+                            }
+                            if (strcmp(buffer,"ACK")==0){
+                            memset(buffer,'\0',BUFFLEN);
                             strcpy(buffer,path_buffer);
                             // printf("Continue sending from server part %d \n",t+1);
                             size = file_transfer(buffer,0);
@@ -210,7 +214,7 @@ while (1){
                             int a = recv(clientSocketfd[i],buffer,BUFFLEN,0);
                             if (strcmp(buffer,"DONE")==0){
                                 printf("Client ip: %s complete service\n",inet_ntoa(clientadd.sin_addr) );
-                            }
+                            }}
                         
 
                         
