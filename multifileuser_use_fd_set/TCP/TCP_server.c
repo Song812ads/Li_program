@@ -180,7 +180,7 @@ while (1){
                 }
                 else{
                     char* path = "/home/phuongnam/transmit/";  
-                    if (strcmp(buffer,"A")==0){
+                    while (strcmp(buffer,"A")==0){
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,path);
                         checkfolder(buffer);
@@ -191,8 +191,16 @@ while (1){
                         close(serverSocketfd);
                         exit(1); 
                     }
+                        memset(buffer,'\0',BUFFLEN);
+                        if(recv(clientSocketfd[i],buffer,BUFFLEN,0)<0)
+                        {
+                            perror("Checkin failed");
+                            exit(1);
+                        }
+
+                    
                     }
-                    else {
+                    
                 
                     size_t len = strlen(path);
                     char* path_buffer = malloc(len+strlen(buffer));
@@ -237,7 +245,7 @@ while (1){
                 clientSocketfd[i] = 0;
                 close(clientSocketfd[i]);
                 
-                }}}
+                }}
             
     free(buffer);
     close(serverSocketfd);
