@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include <signal.h>
 
-#define BUFFLEN 5000
+#define BUFFLEN 50000
 typedef enum {FIRST, AFTER} file_mode;
 
 
@@ -37,42 +37,8 @@ ssize_t  readn(int fd, void *vptr, size_t n)
 }
 
 
-int checkfile(char* buffer){
-    if (access(buffer, F_OK) == -1){
-        printf("File don't exist\n");
-        return 0;
-    }
-    else if (access(buffer,R_OK) == -1){
-        printf("Cant read file\n");
-        return 0;
-    }
-    else {
-        printf("File prepare to read\n");
-        return 1;
-    }
-}
 
-// long file_transfer(char* buffer, int t){
-//     int fp = open(buffer, O_RDONLY);
-//     if (fp == -1){
-//         perror("Error reading file\n");
-//         exit(1);
-//     }
-//     long offset = 0;
-//     while (offset < BUFFLEN){
-//         ssize_t readnow = readn(fp, buffer+offset, 1);
-//         if (readnow == 0){
-//             break;
-//         }
-//         else offset = offset+readnow;
-//     }
-//     close(fp);
-//     printf("File read complete \n");
-//     return offset;
-// }
-
- ssize_t                         /* Write "n" bytes to a descriptor. */
-writen(int fd, const void *vptr, size_t n)
+ssize_t  writen(int fd, const void *vptr, size_t n)
  {
     size_t nleft;
      ssize_t nwritten;
@@ -168,12 +134,12 @@ int main()
 {
    char *buffer = (char* )malloc(BUFFLEN * sizeof(char));
     memset(buffer,'\0', BUFFLEN);
-    strcpy(buffer,"anh.jpeg");
+    strcpy(buffer,"images.jpg");
 //    const char *buffer1 = "/home/phuongnam/text.txt";
 //     if (access(buffer,F_OK)==0) printf("Exist");
 //     else printf("No");
 
-    char* path = "/home/phuongnam/transmit/";
+    char* path = "C:/cygwin64/home/MSI/storage/";
     size_t len = strlen(path);
     char* path_buffer = malloc(len+strlen(buffer));
     strcpy(path_buffer,path);
@@ -184,8 +150,8 @@ int main()
     long size = readn(open1,buffer, BUFFLEN);
     file_mode mode = FIRST;
     printf("%s",buffer);
-    int open2 = open("anh.jpeg", O_RDWR | O_APPEND | O_CREAT | O_SYNC, 0644);
-    size = writen(open2,buffer,BUFFLEN);
+    int open2 = open("images.jpg", O_RDWR  | O_CREAT , 0644);
+    size = writen(open2,buffer,size);
     free(path_buffer);
     free(buffer);
     char msg[123]="12354";
@@ -193,6 +159,19 @@ int main()
     printf("%lld\n",atoll(msg));
     int a = 5000;
     if (a == BUFFLEN) printf("TRue"); else printf("False");
+
+    // printf("\n \n");
+    // printf("%ld\n \n",sizeof(ssize_t));
+    // char* path = "C:/cygwin64/home/MSI/storage/";
+    // size_t len = strlen(path);
+    // char* path_buffer = malloc(len+strlen(buffer));
+    // memset(path_buffer,'\0',sizeof(path_buffer));
+    // strcpy(path_buffer,path);
+    // strcpy(path_buffer+len,buffer);
+
+    // if (checkfile(path_buffer)==0){
+    //     printf("Fail");
+    // }
     // printf({a});
     return 0;
 
