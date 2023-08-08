@@ -116,6 +116,7 @@ int main(int argc, char **argv){
     serveradd.sin_port = htons ( atoi(port) );
     serveradd.sin_addr.s_addr = inet_addr(argv[1]);
 
+
 while(1){
         char* filename=NULL;
         size_t len_file = 0;
@@ -130,7 +131,7 @@ while(1){
         
         memset(buffer,'\0',BUFFLEN);
         strcpy(buffer,filename);
-        if(sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr* )&serveradd, serlen)<0) {
+        if(sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr *)&serveradd, sizeof(serveradd))<0) {
             perror("Send error");
             exit(1);
         }
@@ -138,7 +139,7 @@ while(1){
         // printf("In here");
         if (strcmp(filename,"A")==0){
             memset(buffer,'\0',BUFFLEN);
-            if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0){
+            if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr *)&serveradd, &serlen)<0){
                 perror("Recv error");
                 exit(1);
             }
@@ -148,7 +149,7 @@ while(1){
     }
         // printf("%s\n",filename);
         memset(buffer,'\0',BUFFLEN);
-        if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0){
+         if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr *)&serveradd, &serlen)<0){
             perror("Recv error");
             exit(1);
             // if (a==0) exit(1);
@@ -167,7 +168,7 @@ while(1){
             sz = atol(buffer);
             // printf("%ld\n",sz);
             memset(buffer,'\0',BUFFLEN);
-            if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0){
+             if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr *)&serveradd, &serlen)<0){
                 perror("Recv error");
                 break;
             }
@@ -178,7 +179,7 @@ while(1){
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
-            if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr* )&serveradd, &serlen )<0){
+             if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr *)&serveradd, &serlen)<0){
                 perror("Recv error");
                 exit(1);
             }
