@@ -13,6 +13,8 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <dirent.h>
+#include <poll.h>
+
 #define BUFFLEN 256
 #define MAX_CLIENTS 2
 
@@ -148,77 +150,48 @@ int main(int argc, char **argv){
     else printf("Listening...\n");
     bzero(&clientadd,sizeof(clientadd));
 
+struct pollfd pollfds[MAX_CLIENTS+1];
+pollfds[0].fd = serverSocketfd;
+pollfds[0].events = POLLIN | POLLPRI;
+int useClient = 0;
 while (1){
-    FD_ZERO(&readfds);
-    FD_SET(serverSocketfd,&readfds);
-    int max_sd = serverSocketfd;
-
-    for (int i =0; i<MAX_CLIENTS; i++){
-        sd = clientSocketfd[i];
-        if (sd>0){
-            FD_SET(sd, &readfds);
-        }
-        if (sd > max_sd){
-            max_sd = sd;
-        }
-    }
-
-    int activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);
-    if ((activity < 0) && (errno!=EINTR)) 
-    {
-        printf("select error");
-    }
-
-    if (FD_ISSET(serverSocketfd, &readfds)) 
-        {
-            if (( new_socket = accept(serverSocketfd, (struct sockaddr *)&clientadd, (socklen_t*)&clientlength))<0)
-            {
-                perror("accept");
-                exit(EXIT_FAILURE);
-            }
-            //inform user of socket number - used in send and receive commands
-            printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_socket , inet_ntoa(clientadd.sin_addr) 
-            , ntohs(clientadd.sin_port));
-              
-            //add new socket to array of sockets
-            for (int i = 0; i < MAX_CLIENTS; i++) 
-            {
-                //if position is empty
-                if( clientSocketfd[i] == 0 )
-                {
-                    clientSocketfd[i] = new_socket;
-                    printf("Adding to list of sockets as %d\n" , i+1);
+    int pollResult = poll(pollfds,useClient+1,0);
+    if (pollResult>0){
+        if (pollfds[0].revents & POLLIN){
+            int client_socket = accept(serverSocketfd,(struct sockaddr *)&clientadd, &clientlength);  
+            printf("Client accepted: %s\n", inet_ntoa(clientadd.sin_addr));
+            for (int i = 1; i<MAX_CLIENTS+1;i++){
+                if (pollfds[i].fd == 0){
+                    pollfds[i].fd = client_socket;
+                    pollfds[i].events = POLLIN | POLLPRI;
+                    useClient++;
                     break;
                 }
             }
         }
 
-        for (int i =0; i<MAX_CLIENTS; i++){
-            sd = clientSocketfd[i];
-            if (FD_ISSET(sd,&readfds)){
-                if (valread = read(sd,buffer,BUFFLEN)==0){
-                    getpeername(sd , (struct sockaddr*)&clientadd , (socklen_t*)&clientlength);
-                    printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(clientadd.sin_addr) , ntohs(clientadd.sin_port));
-                    close(sd);
-                    clientSocketfd[i] = 0;
-                }
-                else{
-                    // do{
-                    // if (strcmp(buffer,"A")==0){
-                    //     memset(buffer,'\0',BUFFLEN);
-                    //     strcpy(buffer,"File");
-                    //     if (send(sd,buffer,BUFFLEN,0)<0){
-                    //         perror("Send error");
-                    //         exit(1);
-                    //     }
-                    // }
-                    // else break;
-                    // memset(buffer,'\0',BUFFLEN);
-                    // if (recv(sd,buffer,BUFFLEN,0)<0){  
-                    //     perror("Rcv error");
-                    //     exit(1);
-                    // }
-                    // }while(1);
+    for (int i =1; i<MAX_CLIENTS+1;i++){
+
+            if (pollfds[i].revents & POLLHUP){
+                printf("Client disconnected: %s\n", inet_ntoa(clientadd.sin_addr));
+            }
+
+            if (pollfds[i].revents & POLLIN){
+                    int sd = pollfds[i].fd;
+                    memset(buffer,'\0',BUFFLEN);
+                    int val = recv(sd,buffer,BUFFLEN,0);
+                    if (val==0){
+                        printf("Client disconnected: %s\n", inet_ntoa(clientadd.sin_addr));
+                        close(sd);
+                        pollfds[i].fd = 0;
+                    
+                        break;
+                    }
+                    else if (val<0){
+                        perror("Recv fail");
+                        exit(1);
+                    }
+                    else {
                     printf("File client want: %s\n",buffer);
                     char* path = "C:/cygwin64/home/MSI/storage/";
                     size_t len = strlen(path);
@@ -232,11 +205,12 @@ while (1){
                         printf("File dont exist");
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,"Err");
-                        if (send(sd,buffer,BUFFLEN,0)<0){
+                        if (send(sd,buffer,strlen(buffer),0)<0){
                             perror("Send error");
                             break;
                         }
                     }
+                    
                     else {
                         int op = open(path_buffer, O_RDONLY);
                         free(path_buffer);
@@ -250,7 +224,7 @@ while (1){
                             perror("Send error1");
                             exit(1);
                         }
-                        printf("%s\n",buffer);
+                
                         if (send(sd,buffer,sz,0)<0){
                             perror("Send error2");
                             exit(1);
@@ -269,11 +243,19 @@ while (1){
                             lseek(op,ti*BUFFLEN,SEEK_SET);
                         }
                     }  
-                close(sd);
-                clientSocketfd[i] = 0;
                 }
+                close(sd);
+                pollfds[i].fd = 0;
                 free(siz);
-                }}}}
+                
+            }}
+            if (pollfds[i].revents & POLLERR){
+                perror("Poll");
+            }    
+
+            }
+        }
+    }                   
     free(buffer);
     close(serverSocketfd);
 }

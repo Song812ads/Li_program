@@ -184,6 +184,7 @@ int main(int argc, char **argv){
                 perror("Recv error");
                 exit(1);
             }
+            printf("%s\n",buffer);
             writen(op,buffer,sz);
             // printf("%ld\n",sz);
             if (sz>=BUFFLEN){
