@@ -9,8 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
-#define BUFFLEN 50000
-#define MAX_CLIENTS 1
+#define BUFFLEN 256
 typedef enum {FIRST, AFTER} file_mode;
 
 void pipebroke()
@@ -23,6 +22,7 @@ void exithandler()
     printf("\nExiting....\n");
     exit(EXIT_FAILURE);
 }
+
 
 ssize_t  readn(int fd, void *vptr, size_t n)
 {    size_t  nleft;
@@ -46,8 +46,6 @@ ssize_t  readn(int fd, void *vptr, size_t n)
      return (n - nleft);         /* return >= 0 */
 }
 
-
-
 ssize_t  writen(int fd, const void *vptr, size_t n)
  {
     size_t nleft;
@@ -68,24 +66,22 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
     }
   return (n);
 }
-
 int main(int argc, char **argv){
     // Thiết lập phương thức nhận dữ liêu và tạo kết nối đến server
     signal(SIGPIPE,pipebroke);
     signal(SIGINT,exithandler);
     int socketfd; 
     struct sockaddr_in serveradd;
-    socklen_t serlen = sizeof(serveradd);
     unsigned char *buffer = (unsigned char* )malloc(BUFFLEN * sizeof(unsigned char));
-    fd_set readfds;
+    int ret = 0;
     
-    if (argc!=4){
+    if (argc!=3){
         printf("Wrong type <server addresss> <server port>\n");
         exit(1);
     }
 
     // Socket create:
-    if ((socketfd = socket(AF_INET,SOCK_DGRAM,0))<0){
+    if ((socketfd = socket(AF_INET, SOCK_STREAM,0))<0){
         perror("Socket create fail\n");
         exit(1);
     }
@@ -94,95 +90,118 @@ int main(int argc, char **argv){
     bzero (&serveradd, sizeof(serveradd));
     serveradd.sin_family = AF_INET;
     char* port = argv[2];
-    serveradd.sin_port = htons ( 5375 );
-    serveradd.sin_addr.s_addr = htonl(INADDR_BROADCAST);
-
-    struct timeval tv;
-    tv.tv_sec = 20;  /* 20 Secs Timeout */
-    tv.tv_usec = 0;
-    if(setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO,(char *)&tv,sizeof(tv)) < 0)
-    {
-        printf("Time Out\n");
-        return -1;
-    }
-    const int on = 1;
-    int ret = setsockopt(socketfd, SOL_SOCKET, SO_BROADCAST, (char*)&on, sizeof(on));
-    if (ret == -1) {
-        perror("setsockopt error");
-        return 0;
-    }
-
-
-    char* filename=NULL;
-    size_t len_file = 0;
-    ssize_t rdn;
-    printf("Nhap file muon tai: ");
-    if ((rdn = getline(&filename,&len_file,stdin))==-1){
-        perror("Getline error");
-        // break;
-    }
-    filename[strlen(filename)-1] = '\0';
-    memset(buffer,'\0',BUFFLEN);
-    strcpy(buffer,filename);
-    if(sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr *)&serveradd, sizeof(serveradd))<0) {
-        perror("Send error");
+    serveradd.sin_port = htons ( atoi(port) );
+    if (inet_pton (AF_INET, argv[1], &serveradd.sin_addr) <= 0) {
+        perror("Convert binary fail"); 
+        close(socketfd);
         exit(1);
     }
-        FD_ZERO(&readfds);
-        FD_SET(socketfd,&readfds);
-        while(1){
-        int ret = select(socketfd+1,&readfds,NULL,NULL,NULL);
-        if ((ret < 0) && (errno!=EINTR)) 
-        {
-            printf("select error");
+
+    if (connect(socketfd,(struct sockaddr *)&serveradd, sizeof(serveradd))<0){
+        perror("Connection fail");
+        close(socketfd);
+        exit(1);
+    }
+    
+    // int optval = 1;
+    // socklen_t optlen = sizeof(optval);
+    // if(setsockopt(socketfd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
+    //   perror("setsockopt()");
+    //   close(socketfd);
+    //   exit(EXIT_FAILURE);
+    // }
+
+    while(1){
+        char* filename=NULL;
+        size_t len_file = 0;
+        ssize_t rdn;
+    // while(1){
+        printf("Nhap file muon tai: ");
+        if ((rdn = getline(&filename,&len_file,stdin))==-1){
+            perror("Getline error");
+            break;
+        }
+        filename[strlen(filename)-1] = '\0';
+        
+        memset(buffer,'\0',BUFFLEN);
+        strcpy(buffer,filename);
+        if (send(socketfd,buffer,BUFFLEN,0)<0){
+            perror("Send error");
             exit(1);
         }
-        else if (ret>0){
-            printf("IP address is: %s\n", inet_ntoa(serveradd.sin_addr));
-            printf("port is: %d\n", (int) ntohs(serveradd.sin_port));
-            memset(buffer,'\0',BUFFLEN);           
-            if (recvfrom(socketfd,buffer,BUFFLEN,0, (struct sockaddr *)&serveradd, &serlen)<0){
-                perror("Recv error");
-                exit(1);
-            }
-            if (strcmp(buffer,"Err")==0){
-                printf("File not exist");
-                break;
-            }
+
+    //     if (strcmp(filename,"A")==0){
+    //         memset(buffer,'\0',BUFFLEN);
+    //         if (recv(socketfd,buffer,BUFFLEN,0)<0){
+    //             perror("Recv error");
+    //             exit(1);
+    //         }
+    //         printf("File available: %s\n",buffer);
+    //     }
+    //     else break;
+    // }
+        memset(buffer,'\0',BUFFLEN);
+        if ((recv(socketfd,buffer,BUFFLEN,0))<0){
+            perror("Recv error");
+            exit(1);
+            // if (a==0) exit(1);
+        }
+        //  printf("%s\n",buffer);
+        if (strcmp(buffer,"Err")==0){
+            printf("File not exist");
+            break;
+        }
         else  {
             ssize_t t = 0;
             long sz = 0;
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
-            char size[10];
-            if ((recvfrom(socketfd,size,10,0,(struct sockaddr *)&serveradd, &serlen))<0){
+            sz = atol(buffer);
+            // printf("%ld\n",sz);
+
+            while (1){
+            memset(buffer,'\0',BUFFLEN);
+            if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
                 perror("Recv error");
                 exit(1);
             }
-            int ret = atol(size);
-            writen(op,buffer,ret);
-            if (ret==BUFFLEN){
+            
+            if (ret == 0){
+                printf("Return: %d\n",ret);
+                char message[] = "Again";
+                ret = send(socketfd,message,sizeof(message),0);
+            }
+            else {
+                printf("Return: %d\n",ret);
+                char mes[] = "Ok"; 
+                ret = send(socketfd,mes,sizeof(mes),0);
+                break;
+            }
+            }}
+            writen(op,buffer,sz);
+            // printf("%ld\n",sz);
+            if (sz>=BUFFLEN){
             t++;
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
-            if ((ret = recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr *)&serveradd, &serlen))<0){
+            if (recv(socketfd,buffer,BUFFLEN,0)<0){
                 perror("Recv error");
                 exit(1);
             }
-            }
             else {
             close(op);
-            // close(socketfd);
-            printf("Size from client: %ld\n",t*BUFFLEN+ret);
+            close(socketfd);
+            printf("Size from client: %ld\n",t*BUFFLEN+sz);
             break;
             }
         }
+        
         }
+        break;
         }
 
-    }
     free(buffer);
     return 0;
 }

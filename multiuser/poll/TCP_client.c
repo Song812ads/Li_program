@@ -70,7 +70,8 @@ int main(int argc, char **argv){
     // Thiết lập phương thức nhận dữ liêu và tạo kết nối đến server
     signal(SIGPIPE,pipebroke);
     signal(SIGINT,exithandler);
-    int socketfd; 
+    int ret;
+    int socketfd;
     struct sockaddr_in serveradd;
     unsigned char *buffer = (unsigned char* )malloc(BUFFLEN * sizeof(unsigned char));
     
@@ -101,14 +102,6 @@ int main(int argc, char **argv){
         close(socketfd);
         exit(1);
     }
-    
-    // int optval = 1;
-    // socklen_t optlen = sizeof(optval);
-    // if(setsockopt(socketfd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
-    //   perror("setsockopt()");
-    //   close(socketfd);
-    //   exit(EXIT_FAILURE);
-    // }
 
     while(1){
         char* filename=NULL;
@@ -124,21 +117,10 @@ int main(int argc, char **argv){
         
         memset(buffer,'\0',BUFFLEN);
         strcpy(buffer,filename);
-        if (send(socketfd,buffer,BUFFLEN,0)<0){
+        if (send(socketfd,buffer,rdn,0)<0){
             perror("Send error");
             exit(1);
         }
-
-    //     if (strcmp(filename,"A")==0){
-    //         memset(buffer,'\0',BUFFLEN);
-    //         if (recv(socketfd,buffer,BUFFLEN,0)<0){
-    //             perror("Recv error");
-    //             exit(1);
-    //         }
-    //         printf("File available: %s\n",buffer);
-    //     }
-    //     else break;
-    // }
         memset(buffer,'\0',BUFFLEN);
         if ((recv(socketfd,buffer,BUFFLEN,0))<0){
             perror("Recv error");
@@ -159,6 +141,7 @@ int main(int argc, char **argv){
             sz = atol(buffer);
             // printf("%ld\n",sz);
             memset(buffer,'\0',BUFFLEN);
+            // while (1){
             if (recv(socketfd,buffer,BUFFLEN,0)<0){
                 perror("Recv error");
                 exit(1);

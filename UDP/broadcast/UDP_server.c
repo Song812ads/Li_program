@@ -126,10 +126,9 @@ int main(int argc, char **argv){
     int hostname;
     int val;
     fd_set readfds;
-     // noi store cac file
 
     struct timeval tv;
-    tv.tv_sec = 5;
+    tv.tv_sec = 20;
     tv.tv_usec = 0;
 
     // Socket create:
@@ -145,7 +144,9 @@ int main(int argc, char **argv){
     char* port = argv[1];
     serveradd.sin_port = htons ( 5375 );
     serveradd.sin_addr.s_addr = htons(INADDR_ANY);
-
+    const int enable = 1;
+    if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+        perror("setsockopt(SO_REUSEADDR) failed");
     if (bind (serverSocketfd, (struct sockaddr*) &serveradd, sizeof( serveradd))!=0){
         perror("Server bind fail");
         close(serverSocketfd);
@@ -181,33 +182,36 @@ while (1){
             lseek(op,0,SEEK_SET);
             int ti = 0;
             int sz = 0;
-            while (1){
-                memset(buffer,'\0',BUFFLEN);
-                sz = readn(op,buffer,BUFFLEN);
-                memset(siz,'\0',10);
-                sprintf(siz,"%ld",sz);
-                siz[sz+1] = '\0';
-                if ((sendto(serverSocketfd,siz,sz,0, (struct sockaddr *) &clientadd, cli_ad_sz))<0){
-                    perror("Send error1");
-                    exit(1);
-                }
-                if ((sendto(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr *) &clientadd, cli_ad_sz))<0){
-                    perror("Send error2");
-                    exit(1);
-                }
+        while (1){
+            memset(buffer,'\0',BUFFLEN);
+            sz = readn(op,buffer,BUFFLEN);
 
-                if (sz < BUFFLEN){
-                    memset(buffer,'\0',BUFFLEN);
-                    printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
-                    close(op);
-                    break;
-                }
-                else 
-                {
-                    ti++;
-                    sz = 0;
-                    lseek(op,ti*BUFFLEN,SEEK_SET);
-                }
+            if ((sendto(serverSocketfd,buffer,sz,0, (struct sockaddr *) &clientadd, cli_ad_sz))<0){
+                perror("Send error1");
+                exit(1);
+            }
+
+            memset(buffer,'\0',BUFFLEN);
+            sprintf(buffer,"%ld",sz);
+            if ((sendto(serverSocketfd,buffer,sz,0, (struct sockaddr *) &clientadd, cli_ad_sz))<0){
+                perror("Send error1");
+                exit(1);
+            }
+
+            if (sz < BUFFLEN){
+                memset(buffer,'\0',BUFFLEN);
+                memset(buffer,'\0',BUFFLEN);
+                printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
+                close(serverSocketfd);
+                close(op);
+                break;
+            }
+            else 
+            {
+                ti++;
+                sz = 0;
+                lseek(op,ti*BUFFLEN,SEEK_SET);
+            }
         }  
     }
 free(siz);

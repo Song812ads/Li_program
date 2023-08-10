@@ -248,12 +248,12 @@ while (1){
                 pollfds[i].fd = 0;
                 free(siz);
                 
-            }
+            }}
             if (pollfds[i].revents & POLLERR){
                 perror("Poll");
             }    
 
-            }}
+            }
         }
     }                   
     free(buffer);

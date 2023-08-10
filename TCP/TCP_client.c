@@ -93,7 +93,7 @@ int main(int argc, char **argv){
     signal(SIGINT,exithandler);
     int socketfd; 
     struct sockaddr_in serveradd;
-    unsigned char *buffer = (unsigned char* )malloc(BUFFLEN * sizeof(unsigned char));
+    unsigned char *buffer = (unsigned char* )malloc((BUFFLEN+1) * sizeof(unsigned char));
     
     if (argc!=4){
         printf("Wrong type <server addresss> <server port>\n");
@@ -130,6 +130,11 @@ int main(int argc, char **argv){
       close(socketfd);
       exit(EXIT_FAILURE);
     }
+    struct timeval tv;
+    tv.tv_sec = 20;
+    tv.tv_usec = 0;
+        if( setsockopt (socketfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0 )
+        printf( "setsockopt fail\n" );
 
     while(1){
         char* filename=NULL;
@@ -160,8 +165,9 @@ int main(int argc, char **argv){
         }
         else break;
     }
+        int ret = 0;
         memset(buffer,'\0',BUFFLEN);
-        if ((recv(socketfd,buffer,BUFFLEN,0))<0){
+        if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
             perror("Recv error");
             exit(1);
             // if (a==0) exit(1);
@@ -177,22 +183,13 @@ int main(int argc, char **argv){
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
-            sz = atol(buffer);
-            // printf("%ld\n",sz);
-            memset(buffer,'\0',BUFFLEN);
-            if (recv(socketfd,buffer,BUFFLEN,0)<0){
-                perror("Recv error");
-                exit(1);
-            }
-            printf("%s\n",buffer);
-            writen(op,buffer,sz);
-            // printf("%ld\n",sz);
-            if (sz>=BUFFLEN){
+            writen(op,buffer,ret);
+            if (ret==BUFFLEN){
             t++;
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
-            if (recv(socketfd,buffer,BUFFLEN,0)<0){
+            if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
                 perror("Recv error");
                 exit(1);
             }
@@ -200,7 +197,7 @@ int main(int argc, char **argv){
             else {
             close(op);
             close(socketfd);
-            printf("Size from client: %ld\n",t*BUFFLEN+sz);
+            printf("Size from client: %ld\n",t*BUFFLEN+ret);
             break;
             }
         }

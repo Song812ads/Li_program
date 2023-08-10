@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
-#define BUFFLEN 50000
+#define BUFFLEN 1000
 typedef enum {FIRST, AFTER} file_mode;
 
 void pipebroke()
@@ -116,7 +116,6 @@ int main(int argc, char **argv){
     serveradd.sin_port = htons ( atoi(port) );
     serveradd.sin_addr.s_addr = inet_addr(argv[1]);
 
-
 while(1){
         char* filename=NULL;
         size_t len_file = 0;
@@ -127,16 +126,11 @@ while(1){
             perror("Getline error");
             break;
         }
-        filename[strlen(filename)-1] = '\0';
-        
-        memset(buffer,'\0',BUFFLEN);
-        strcpy(buffer,filename);
-        if(sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr *)&serveradd, sizeof(serveradd))<0) {
+        filename[rdn-1] = '\0';
+        if(sendto(socketfd,filename,rdn-1,0, (struct sockaddr *)&serveradd, sizeof(serveradd))<0) {
             perror("Send error");
             exit(1);
         }
-        // printf("%s\n",buffer);
-        // printf("In here");
         if (strcmp(filename,"A")==0){
             memset(buffer,'\0',BUFFLEN);
             if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr *)&serveradd, &serlen)<0){
@@ -147,14 +141,12 @@ while(1){
         }
         else break;
     }
-        // printf("%s\n",filename);
         memset(buffer,'\0',BUFFLEN);
-         if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr *)&serveradd, &serlen)<0){
+        if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr *)&serveradd, &serlen)<0){
             perror("Recv error");
             exit(1);
             // if (a==0) exit(1);
         }
-        //  printf("%s\n",buffer);
         if (strcmp(buffer,"Err")==0){
             printf("File not exist");
             break;
@@ -165,21 +157,19 @@ while(1){
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
-            sz = atol(buffer);
-            // printf("%ld\n",sz);
-            memset(buffer,'\0',BUFFLEN);
-             if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr *)&serveradd, &serlen)<0){
+            char size[10];
+            if ((recvfrom(socketfd,size,10,0,(struct sockaddr *)&serveradd, &serlen))<0){
                 perror("Recv error");
-                break;
+                exit(1);
             }
-            writen(op,buffer,sz);
-            // printf("%ld\n",sz);
-            if (sz>=BUFFLEN){
+            int ret = atol(size);
+            writen(op,buffer,ret);
+            if (ret==BUFFLEN){
             t++;
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
-             if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr *)&serveradd, &serlen)<0){
+            if ((ret = recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr *)&serveradd, &serlen))<0){
                 perror("Recv error");
                 exit(1);
             }
@@ -187,7 +177,7 @@ while(1){
             else {
             close(op);
             close(socketfd);
-            printf("Size from client: %ld\n",t*BUFFLEN+sz);
+            printf("Size from client: %ld\n",t*BUFFLEN+ret);
             break;
             }
         }

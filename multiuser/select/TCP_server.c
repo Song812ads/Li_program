@@ -13,7 +13,7 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <dirent.h>
-#define BUFFLEN 256
+#define BUFFLEN 1000
 #define MAX_CLIENTS 2
 
 void pipebroke()
@@ -148,6 +148,8 @@ int main(int argc, char **argv){
     else printf("Listening...\n");
     bzero(&clientadd,sizeof(clientadd));
 
+
+
 while (1){
     FD_ZERO(&readfds);
     FD_SET(serverSocketfd,&readfds);
@@ -176,6 +178,21 @@ while (1){
                 perror("accept");
                 exit(EXIT_FAILURE);
             }
+
+            struct timeval tv;
+            tv.tv_sec = 200;  /* 20 Secs Timeout */
+            tv.tv_usec = 0;
+            if(setsockopt(new_socket, SOL_SOCKET, SO_RCVTIMEO,(char *)&tv,sizeof(tv)) < 0)
+            {
+                printf("Time Out\n");
+                return -1;
+            }
+
+            if(setsockopt(new_socket, SOL_SOCKET, SO_SNDTIMEO,(char *)&tv,sizeof(tv)) < 0)
+            {
+                printf("Time Out\n");
+                return -1;
+            }
             //inform user of socket number - used in send and receive commands
             printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_socket , inet_ntoa(clientadd.sin_addr) 
             , ntohs(clientadd.sin_port));
@@ -187,6 +204,7 @@ while (1){
                 if( clientSocketfd[i] == 0 )
                 {
                     clientSocketfd[i] = new_socket;
+
                     printf("Adding to list of sockets as %d\n" , i+1);
                     break;
                 }
@@ -245,16 +263,20 @@ while (1){
                         memset(buffer,'\0',BUFFLEN);
                         sz = readn(op,buffer,BUFFLEN);
                         memset(siz,'\0',10);
+                    
                         sprintf(siz,"%ld",sz);
-                        if (send(sd,siz,sz,0)<0){
+            
+                        if (send(sd,siz,strlen(siz),0)<0){
                             perror("Send error1");
                             exit(1);
                         }
-                        printf("%s\n",buffer);
+                        // printf("%s\n",buffer);
+             
                         if (send(sd,buffer,sz,0)<0){
                             perror("Send error2");
                             exit(1);
                         }
+
 
                         if (sz < BUFFLEN){
                             memset(buffer,'\0',BUFFLEN);

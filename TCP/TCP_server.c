@@ -126,7 +126,7 @@ int main(int argc, char **argv){
     // Thiêt lập port và các phương thức cơ bản giao tiếp TCP/IP
     int serverSocketfd, clientSocketfd, valread;
     struct sockaddr_in serveradd, clientadd;
-    char *buffer = (char* )malloc(BUFFLEN * sizeof(char));
+    char *buffer = (char* )malloc((BUFFLEN+1) * sizeof(char));
     int clientlength = sizeof(clientadd);
     struct timeval tv;
     // tv.tv_sec = 5;
@@ -203,8 +203,6 @@ while(1){
         }
     }
     else break;}
-
-
     printf("File client want: %s\n",buffer);
     char* path = "C:/cygwin64/home/MSI/storage/";
     size_t len = strlen(path);
@@ -230,24 +228,21 @@ while(1){
         while (1){
         memset(buffer,'\0',BUFFLEN);
         sz = readn(op,buffer,BUFFLEN);
-        memset(siz,'\0',10);
-        sprintf(siz,"%ld",sz);
-        if (send(clientSocketfd,siz,sz,0)<0){
+
+        if (send(clientSocketfd,buffer,sz,0)<0){
             perror("Send error1");
-            exit(1);
-        }
-        if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
-            perror("Send error2");
             exit(1);
         }
 
         if (sz < BUFFLEN){
             memset(buffer,'\0',BUFFLEN);
+            if (recv(clientSocketfd,buffer,BUFFLEN,0)==0){
+            memset(buffer,'\0',BUFFLEN);
             printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
             close(clientSocketfd);
             close(op);
             break;
-        }
+        }}
         else 
         {
             ti++;

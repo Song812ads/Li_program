@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
-#define BUFFLEN 256
+#define BUFFLEN 1000
 typedef enum {FIRST, AFTER} file_mode;
 
 void pipebroke()
@@ -108,7 +108,17 @@ int main(int argc, char **argv){
     //   perror("setsockopt()");
     //   close(socketfd);
     //   exit(EXIT_FAILURE);
-    // }
+    // }s
+
+
+    struct timeval tv;
+    tv.tv_sec = 20;  /* 20 Secs Timeout */
+    tv.tv_usec = 0;
+    if(setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO,(char *)&tv,sizeof(tv)) < 0)
+    {
+        printf("Time Out\n");
+        return -1;
+    }
 
     while(1){
         char* filename=NULL;
