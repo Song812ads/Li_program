@@ -178,7 +178,7 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
     struct epoll_event *events = calloc(MAX_CLIENTS, sizeof(event));
 
     while (1){
-        int nevents = epoll_wait(epoll_fd, events, MAX_CLIENTS, -1);
+        int nevents = epoll_wait(epoll_fd, events, MAX_CLIENTS, 20);
             if (nevents == -1) {
             perror("epoll_wait error");
             exit(1);
@@ -201,6 +201,26 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                         perror("Accepted fail");
                         exit(1);
                     }
+                }
+                else {
+                    printf("New connection ,ip is : %s , port : %d \n" , inet_ntoa(clientadd.sin_addr), ntohs(clientadd.sin_port));
+                    int flags = fcntl(client_socket, F_GETFL, 0);
+                    if (flags == -1) {
+                        perror("fcntl()");
+                        exit(1);
+                    }
+                        if (fcntl(client_socket, F_SETFL, flags | O_NONBLOCK) == -1) {
+                        perror("fcntl()");
+                        exit(1);
+                    }
+
+                    event.data.fd = client_socket;
+                    event.events = EPOLLIN | EPOLLET ;
+                    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_socket, &event) == -1) {
+                        perror("epoll_ctl()");
+                        exit(1);
+                    }
+                    
                 }
             }
         }
@@ -249,7 +269,6 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                             break;
                         }
                     }
-                    
                     else {
                         int op = open(path_buffer, O_RDONLY);
                         free(path_buffer);

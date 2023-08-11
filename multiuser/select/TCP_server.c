@@ -180,7 +180,7 @@ while (1){
                 perror("accept");
                 exit(EXIT_FAILURE);
             }
-            printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_socket , inet_ntoa(clientadd.sin_addr) 
+            printf("New connection ,ip is : %s , port : %d \n" , new_socket , inet_ntoa(clientadd.sin_addr) 
             , ntohs(clientadd.sin_port));
               
             //add new socket to array of sockets
