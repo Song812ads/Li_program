@@ -148,8 +148,6 @@ int main(int argc, char **argv){
     else printf("Listening...\n");
     bzero(&clientadd,sizeof(clientadd));
 
-
-
 while (1){
     FD_ZERO(&readfds);
     FD_SET(serverSocketfd,&readfds);
@@ -222,14 +220,15 @@ while (1){
                 }
                 else{
                     // do{
-                    // if (strcmp(buffer,"A")==0){
-                    //     memset(buffer,'\0',BUFFLEN);
-                    //     strcpy(buffer,"File");
-                    //     if (send(sd,buffer,BUFFLEN,0)<0){
-                    //         perror("Send error");
-                    //         exit(1);
-                    //     }
-                    // }
+                    if (strcmp(buffer,"A")==0){
+                        memset(buffer,'\0',BUFFLEN);
+                        strcpy(buffer,"File");
+                        if (send(sd,buffer,BUFFLEN,0)<0){
+                            perror("Send error");
+                            exit(1);
+                        }
+                    }
+                    else {
                     // else break;
                     // memset(buffer,'\0',BUFFLEN);
                     // if (recv(sd,buffer,BUFFLEN,0)<0){  
@@ -295,7 +294,7 @@ while (1){
                 clientSocketfd[i] = 0;
                 }
                 free(siz);
-                }}}}
+        }}}}}
     free(buffer);
     close(serverSocketfd);
 }

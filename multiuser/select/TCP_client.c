@@ -124,7 +124,7 @@ int main(int argc, char **argv){
         char* filename=NULL;
         size_t len_file = 0;
         ssize_t rdn;
-    // while(1){
+    while(1){
         printf("Nhap file muon tai: ");
         if ((rdn = getline(&filename,&len_file,stdin))==-1){
             perror("Getline error");
@@ -139,16 +139,16 @@ int main(int argc, char **argv){
             exit(1);
         }
 
-    //     if (strcmp(filename,"A")==0){
-    //         memset(buffer,'\0',BUFFLEN);
-    //         if (recv(socketfd,buffer,BUFFLEN,0)<0){
-    //             perror("Recv error");
-    //             exit(1);
-    //         }
-    //         printf("File available: %s\n",buffer);
-    //     }
-    //     else break;
-    // }
+        if (strcmp(filename,"A")==0){
+            memset(buffer,'\0',BUFFLEN);
+            if (recv(socketfd,buffer,BUFFLEN,0)<0){
+                perror("Recv error");
+                exit(1);
+            }
+            printf("File available: %s\n",buffer);
+        }
+        else break;
+    }
         memset(buffer,'\0',BUFFLEN);
         if ((recv(socketfd,buffer,BUFFLEN,0))<0){
             perror("Recv error");
