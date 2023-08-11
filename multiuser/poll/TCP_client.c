@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
-#define BUFFLEN 256
+#define BUFFLEN 1000
 typedef enum {FIRST, AFTER} file_mode;
 
 void pipebroke()
@@ -22,7 +22,6 @@ void exithandler()
     printf("\nExiting....\n");
     exit(EXIT_FAILURE);
 }
-
 
 ssize_t  readn(int fd, void *vptr, size_t n)
 {    size_t  nleft;
@@ -66,16 +65,37 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
     }
   return (n);
 }
+
+void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
+    int fp = open(file, O_RDWR | O_APPEND | O_CREAT | O_SYNC, 0644);
+    if (fp == -1){
+        perror("Error writing file\n");
+        exit(1);
+    }
+    off_t offset = 0;
+    for (int i=0; i < size; i++){
+        ssize_t readnow = pwrite(fp, buffer + offset, 1,t*BUFFLEN + offset);
+        if (readnow < 0){
+            printf("Read unsuccessful \n");
+            free(buffer);
+            close(fp);
+            exit(1);
+        }
+        offset = offset+readnow;
+    }
+    close(fp);
+    printf("File write complete part %d \n",t+1);
+}
+
 int main(int argc, char **argv){
     // Thiết lập phương thức nhận dữ liêu và tạo kết nối đến server
     signal(SIGPIPE,pipebroke);
     signal(SIGINT,exithandler);
-    int ret;
-    int socketfd;
+    int socketfd; 
     struct sockaddr_in serveradd;
-    unsigned char *buffer = (unsigned char* )malloc(BUFFLEN * sizeof(unsigned char));
+    unsigned char *buffer = (unsigned char* )malloc((BUFFLEN+1) * sizeof(unsigned char));
     
-    if (argc!=3){
+    if (argc!=4){
         printf("Wrong type <server addresss> <server port>\n");
         exit(1);
     }
@@ -103,11 +123,24 @@ int main(int argc, char **argv){
         exit(1);
     }
 
+    int optval = 1;
+    socklen_t optlen = sizeof(optval);
+    if(setsockopt(socketfd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
+      perror("setsockopt()");
+      close(socketfd);
+      exit(EXIT_FAILURE);
+    }
+    struct timeval tv;
+    tv.tv_sec = 20;
+    tv.tv_usec = 0;
+        if( setsockopt (socketfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0 )
+        printf( "setsockopt fail\n" );
+
     while(1){
         char* filename=NULL;
         size_t len_file = 0;
         ssize_t rdn;
-    // while(1){
+    while(1){
         printf("Nhap file muon tai: ");
         if ((rdn = getline(&filename,&len_file,stdin))==-1){
             perror("Getline error");
@@ -117,12 +150,23 @@ int main(int argc, char **argv){
         
         memset(buffer,'\0',BUFFLEN);
         strcpy(buffer,filename);
-        if (send(socketfd,buffer,rdn,0)<0){
+        if (send(socketfd,buffer,BUFFLEN,0)<0){
             perror("Send error");
             exit(1);
         }
+
+        if (strcmp(filename,"A")==0){
+            memset(buffer,'\0',BUFFLEN);
+            if (recv(socketfd,buffer,BUFFLEN,0)<0){
+                perror("Recv error");
+                exit(1);
+            }
+            printf("File available: %s\n",buffer);
+        }
+        else break;
+    }
+        int ret = 0;
         memset(buffer,'\0',BUFFLEN);
-        int ret;
         if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
             perror("Recv error");
             exit(1);
@@ -139,11 +183,10 @@ int main(int argc, char **argv){
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
-            printf("%s\n",buffer);
             writen(op,buffer,ret);
-            // printf("%ld\n",sz);
-            if (ret>=BUFFLEN){
+            if (ret==BUFFLEN){
             t++;
+            sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
             if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){

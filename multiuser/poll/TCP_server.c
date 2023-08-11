@@ -133,7 +133,11 @@ int main(int argc, char **argv){
     serveradd.sin_family = AF_INET;
     serveradd.sin_port = htons ( 6315 );
     serveradd.sin_addr.s_addr = htonl(INADDR_ANY);
-
+    const int enable = 1;
+if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+    error("setsockopt(SO_REUSEADDR) failed");
+if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0)
+    error("setsockopt(SO_REUSEADDR) failed");
 
     if (bind (serverSocketfd, (struct sockaddr*) &serveradd, sizeof( serveradd))!=0){
         perror("Server bind fail");
@@ -192,8 +196,17 @@ while (1){
                         exit(1);
                     }
                     else {
+                    if (strcmp(buffer,"A")==0){
+                        memset(buffer,'\0',BUFFLEN);
+                        strcpy(buffer,"File");
+                        if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
+                            perror("Send error");
+                            exit(1);
+                        }
+                    }
+                    else {
                     printf("File client want: %s\n",buffer);
-                    char* path = "C:/cygwin64/home/MSI/storage/";
+                    char* path = "/home/phuongnam/transmit/";
                     size_t len = strlen(path);
                     char* path_buffer = malloc(len+strlen(buffer));
                     memset(path_buffer,'\0',sizeof(path_buffer));
@@ -248,7 +261,7 @@ while (1){
                 perror("Poll");
             }    
 
-            }}
+            }}}
         }
     }                   
     free(buffer);
