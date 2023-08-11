@@ -116,6 +116,15 @@ int main(int argc, char **argv){
     serveradd.sin_port = htons ( atoi(port) );
     serveradd.sin_addr.s_addr = inet_addr(argv[1]);
 
+        int optval = 1;
+    socklen_t optlen = sizeof(optval);
+    if(setsockopt(socketfd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
+      perror("setsockopt()");
+      close(socketfd);
+      exit(EXIT_FAILURE);
+    }
+
+
 while(1){
         char* filename=NULL;
         size_t len_file = 0;

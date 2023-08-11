@@ -141,6 +141,15 @@ int main(int argc, char **argv){
     }
     else printf("Binding...\n");
 
+        int optval = 1;
+    socklen_t optlen = sizeof(optval);
+    if(setsockopt(serverSocketfd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
+      perror("setsockopt()");
+      close(serverSocketfd);
+      exit(EXIT_FAILURE);
+    }
+
+
     while (1){
         memset(buffer,'\0',BUFFLEN);
         if ((recvfrom(serverSocketfd, buffer, BUFFLEN, 0, (struct sockaddr *) &clientadd, &cli_ad_sz))<0){
