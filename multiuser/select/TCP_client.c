@@ -171,7 +171,7 @@ int main(int argc, char **argv){
             printf("%s\n",buffer);
             writen(op,buffer,ret);
             // printf("%ld\n",sz);
-            if (ret>=BUFFLEN){
+            if (ret==BUFFLEN){
             t++;
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
