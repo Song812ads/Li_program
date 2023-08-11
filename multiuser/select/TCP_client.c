@@ -110,7 +110,6 @@ int main(int argc, char **argv){
     //   exit(EXIT_FAILURE);
     // }s
 
-
     struct timeval tv;
     tv.tv_sec = 20;  /* 20 Secs Timeout */
     tv.tv_usec = 0;
@@ -119,7 +118,6 @@ int main(int argc, char **argv){
         printf("Time Out\n");
         return -1;
     }
-
     while(1){
         char* filename=NULL;
         size_t len_file = 0;

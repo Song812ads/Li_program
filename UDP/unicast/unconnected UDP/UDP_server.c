@@ -216,12 +216,6 @@ int main(int argc, char **argv){
 
 
             if (sz < BUFFLEN){
-                // memset(buffer,'\0',BUFFLEN);
-                // if (recvfrom(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr *) &clientadd, &cli_ad_sz)<0){
-                // perror("Recv error"); 
-                // exit(1);
-                // }
-                // if (strcmp(buffer,"END")==0){
                     printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
                     // close(serverSocketfd);
                     close(op);
