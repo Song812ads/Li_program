@@ -151,7 +151,7 @@ int main(int argc, char **argv){
     }
         memset(buffer,'\0',BUFFLEN);
         int ret;
-        if (ret = (recv(socketfd,buffer,BUFFLEN,0))<0){
+        if ( (ret =recv(socketfd,buffer,BUFFLEN,0))<0){
             perror("Recv error");
             exit(1);
             // if (a==0) exit(1);
