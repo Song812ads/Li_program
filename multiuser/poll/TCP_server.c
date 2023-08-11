@@ -218,13 +218,6 @@ while (1){
                         while (1){
                         memset(buffer,'\0',BUFFLEN);
                         sz = readn(op,buffer,BUFFLEN);
-                        memset(siz,'\0',10);
-                        sprintf(siz,"%ld",sz);
-                        if (send(sd,siz,sz,0)<0){
-                            perror("Send error1");
-                            exit(1);
-                        }
-                
                         if (send(sd,buffer,sz,0)<0){
                             perror("Send error2");
                             exit(1);
@@ -232,10 +225,12 @@ while (1){
 
                         if (sz < BUFFLEN){
                             memset(buffer,'\0',BUFFLEN);
+                            if (recv(sd,buffer,BUFFLEN,0)==0){
+                            
                             printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
                             close(op);
                             break;
-                        }
+                        }}
                         else 
                         {
                             ti++;

@@ -182,7 +182,7 @@ while (1){
             }
 
             struct timeval tv;
-            tv.tv_sec = 200;  /* 20 Secs Timeout */
+            tv.tv_sec = 20;  /* 20 Secs Timeout */
             tv.tv_usec = 0;
             if(setsockopt(new_socket, SOL_SOCKET, SO_RCVTIMEO,(char *)&tv,sizeof(tv)) < 0)
             {

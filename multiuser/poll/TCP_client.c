@@ -122,7 +122,8 @@ int main(int argc, char **argv){
             exit(1);
         }
         memset(buffer,'\0',BUFFLEN);
-        if ((recv(socketfd,buffer,BUFFLEN,0))<0){
+        int ret;
+        if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
             perror("Recv error");
             exit(1);
             // if (a==0) exit(1);
@@ -138,23 +139,14 @@ int main(int argc, char **argv){
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
-            sz = atol(buffer);
-            // printf("%ld\n",sz);
-            memset(buffer,'\0',BUFFLEN);
-            // while (1){
-            if (recv(socketfd,buffer,BUFFLEN,0)<0){
-                perror("Recv error");
-                exit(1);
-            }
             printf("%s\n",buffer);
-            writen(op,buffer,sz);
+            writen(op,buffer,ret);
             // printf("%ld\n",sz);
-            if (sz>=BUFFLEN){
+            if (ret>=BUFFLEN){
             t++;
-            sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
-            if (recv(socketfd,buffer,BUFFLEN,0)<0){
+            if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
                 perror("Recv error");
                 exit(1);
             }
@@ -162,7 +154,7 @@ int main(int argc, char **argv){
             else {
             close(op);
             close(socketfd);
-            printf("Size from client: %ld\n",t*BUFFLEN+sz);
+            printf("Size from client: %ld\n",t*BUFFLEN+ret);
             break;
             }
         }
