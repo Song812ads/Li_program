@@ -181,6 +181,12 @@ while(1){
             }
             }
             else {
+            memset(buffer,'\0',BUFFLEN);
+            strcpy(buffer,"END");
+            if (sendto(socketfd,buffer,BUFFLEN,0,(struct sockaddr *)&serveradd, serlen)<0){
+                perror("Send err");
+                exit(1);
+            }
             close(op);
             close(socketfd);
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
