@@ -141,13 +141,13 @@ int main(int argc, char **argv){
     }
     else printf("Binding...\n");
 
-        int optval = 1;
-    socklen_t optlen = sizeof(optval);
-    if(setsockopt(serverSocketfd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
-      perror("setsockopt()");
-      close(serverSocketfd);
-      exit(EXIT_FAILURE);
-    }
+    //     int optval = 1;
+    // socklen_t optlen = sizeof(optval);
+    // if(setsockopt(serverSocketfd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
+    //   perror("setsockopt()");
+    //   close(serverSocketfd);
+    //   exit(EXIT_FAILURE);
+    // }
 
 
     while (1){
@@ -207,12 +207,6 @@ int main(int argc, char **argv){
                 exit(1);
             }
 
-            memset(buffer,'\0',BUFFLEN);
-            sprintf(buffer,"%ld",sz);
-            if ((sendto(serverSocketfd,buffer,sz,0, (struct sockaddr *) &clientadd, cli_ad_sz))<0){
-                perror("Send error1");
-                exit(1);
-            }
 
             if (sz < BUFFLEN){
                 memset(buffer,'\0',BUFFLEN);
