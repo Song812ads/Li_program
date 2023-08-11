@@ -143,8 +143,7 @@ int main(int argc, char **argv){
 
     while (1){
         memset(buffer,'\0',BUFFLEN);
-        int ret;
-        if (ret = (recvfrom(serverSocketfd, buffer, BUFFLEN, 0, (struct sockaddr *) &clientadd, &cli_ad_sz))<0){
+        if ((recvfrom(serverSocketfd, buffer, BUFFLEN, 0, (struct sockaddr *) &clientadd, &cli_ad_sz))<0){
             perror("Recv error");
             exit(1);
         }
@@ -168,7 +167,7 @@ int main(int argc, char **argv){
         else break;}
 
     printf("File client want: %s\n",buffer);
-    char* path = "C:/cygwin64/home/MSI/storage/";
+    char* path = "/home/phuongnam/transmit/";
     size_t len = strlen(path);
     char* path_buffer = malloc(len+strlen(buffer));
     memset(path_buffer,'\0',sizeof(path_buffer));
