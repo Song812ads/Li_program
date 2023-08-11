@@ -148,7 +148,14 @@ int main(int argc, char **argv){
     //   close(serverSocketfd);
     //   exit(EXIT_FAILURE);
     // }
-
+    struct timeval tv;
+    tv.tv_sec = 20;  /* 20 Secs Timeout */
+    tv.tv_usec = 0;
+    if(setsockopt(serverSocketfd, SOL_SOCKET, SO_RCVTIMEO,(char *)&tv,sizeof(tv)) < 0)
+    {
+        printf("Time Out\n");
+        return -1;
+    }
 
     while (1){
         memset(buffer,'\0',BUFFLEN);
@@ -209,17 +216,18 @@ int main(int argc, char **argv){
 
 
             if (sz < BUFFLEN){
-                memset(buffer,'\0',BUFFLEN);
-                if (recvfrom(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr *) &clientadd, &cli_ad_sz)<0){
-            // // }   
-                if (strcmp(buffer,"END")==0){
-                printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
-                close(serverSocketfd);
-                close(op);
-                break;
-            // printf("%d\n",ret);
-                }
-            }}
+                // memset(buffer,'\0',BUFFLEN);
+                // if (recvfrom(serverSocketfd,buffer,BUFFLEN,0, (struct sockaddr *) &clientadd, &cli_ad_sz)<0){
+                // perror("Recv error"); 
+                // exit(1);
+                // }
+                // if (strcmp(buffer,"END")==0){
+                    printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
+                    // close(serverSocketfd);
+                    close(op);
+                    break;
+                
+            }
             else 
             {
                 ti++;
