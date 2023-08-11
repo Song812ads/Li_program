@@ -237,7 +237,7 @@ while (1){
                     // }
                     // }while(1);
                     printf("File client want: %s\n",buffer);
-                    char* path = "C:/cygwin64/home/MSI/storage/";
+                    char* path = "/home/phuongnam/transmit/";
                     size_t len = strlen(path);
                     char* path_buffer = malloc(len+strlen(buffer));
                     memset(path_buffer,'\0',sizeof(path_buffer));
@@ -261,14 +261,6 @@ while (1){
                         while (1){
                         memset(buffer,'\0',BUFFLEN);
                         sz = readn(op,buffer,BUFFLEN);
-                        memset(siz,'\0',10);
-                    
-                        sprintf(siz,"%ld",sz);
-            
-                        if (send(sd,siz,strlen(siz),0)<0){
-                            perror("Send error1");
-                            exit(1);
-                        }
                         // printf("%s\n",buffer);
              
                         if (send(sd,buffer,sz,0)<0){
