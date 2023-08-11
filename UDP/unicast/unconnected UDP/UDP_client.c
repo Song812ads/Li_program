@@ -142,11 +142,13 @@ while(1){
         else break;
     }
         memset(buffer,'\0',BUFFLEN);
-        if(recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr *)&serveradd, &serlen)<0){
+        int ret;
+        if((ret = recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr *)&serveradd, &serlen))<0){
             perror("Recv error");
             exit(1);
             // if (a==0) exit(1);
         }
+        printf("%d\n",ret);
         if (strcmp(buffer,"Err")==0){
             printf("File not exist");
             break;
