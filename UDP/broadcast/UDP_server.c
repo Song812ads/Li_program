@@ -160,7 +160,7 @@ while (1){
         printf("Client ip: %s, Port: %d\n", inet_ntoa(clientadd.sin_addr),htons(clientadd.sin_port));
         printf("Message from client: %s\n",buffer);
 
-        char* path = "C:/cygwin64/home/MSI/storage/";
+        char* path = "home/song/tranmiss";
         size_t len = strlen(path);
         char* path_buffer = malloc(len+strlen(buffer));
         memset(path_buffer,'\0',sizeof(path_buffer));
@@ -199,8 +199,6 @@ while (1){
             }
 
             if (sz < BUFFLEN){
-                memset(buffer,'\0',BUFFLEN);
-                memset(buffer,'\0',BUFFLEN);
                 printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
                 close(serverSocketfd);
                 close(op);
