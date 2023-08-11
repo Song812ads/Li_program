@@ -155,6 +155,11 @@ int main(int argc, char **argv){
     //   close(clientSocketfd);
     //   exit(EXIT_FAILURE);
     // }
+    const int enable = 1;
+if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+    error("setsockopt(SO_REUSEADDR) failed");
+if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0)
+    error("setsockopt(SO_REUSEADDR) failed");
     if (bind (serverSocketfd, (struct sockaddr*) &serveradd, sizeof( serveradd))!=0){
         perror("Server bind fail");
         close(serverSocketfd);
