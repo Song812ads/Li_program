@@ -180,22 +180,6 @@ while (1){
                 perror("accept");
                 exit(EXIT_FAILURE);
             }
-
-            struct timeval tv;
-            tv.tv_sec = 20;  /* 20 Secs Timeout */
-            tv.tv_usec = 0;
-            if(setsockopt(new_socket, SOL_SOCKET, SO_RCVTIMEO,(char *)&tv,sizeof(tv)) < 0)
-            {
-                printf("Time Out\n");
-                return -1;
-            }
-
-            if(setsockopt(new_socket, SOL_SOCKET, SO_SNDTIMEO,(char *)&tv,sizeof(tv)) < 0)
-            {
-                printf("Time Out\n");
-                return -1;
-            }
-            //inform user of socket number - used in send and receive commands
             printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_socket , inet_ntoa(clientadd.sin_addr) 
             , ntohs(clientadd.sin_port));
               

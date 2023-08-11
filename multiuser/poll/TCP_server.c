@@ -15,7 +15,7 @@
 #include <dirent.h>
 #include <poll.h>
 
-#define BUFFLEN 256
+#define BUFFLEN 1000
 #define MAX_CLIENTS 2
 
 void pipebroke()
@@ -199,7 +199,7 @@ while (1){
                     if (strcmp(buffer,"A")==0){
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,"File");
-                        if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
+                        if (send(sd,buffer,BUFFLEN,0)<0){
                             perror("Send error");
                             exit(1);
                         }
@@ -212,7 +212,6 @@ while (1){
                     memset(path_buffer,'\0',sizeof(path_buffer));
                     strcpy(path_buffer,path);
                     strcpy(path_buffer+len,buffer);
-                    char* siz = malloc(10*sizeof(char));
                     int sz = 0, ti = 0;
                     if (checkfile(path_buffer)==0){
                         printf("File dont exist");
@@ -231,6 +230,7 @@ while (1){
                         while (1){
                         memset(buffer,'\0',BUFFLEN);
                         sz = readn(op,buffer,BUFFLEN);
+                        printf("%d\n",sz);
                         if (send(sd,buffer,sz,0)<0){
                             perror("Send error2");
                             exit(1);
@@ -239,7 +239,6 @@ while (1){
                         if (sz < BUFFLEN){
                             memset(buffer,'\0',BUFFLEN);
                             if (recv(sd,buffer,BUFFLEN,0)==0){
-                            
                             printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
                             close(op);
                             break;
@@ -254,7 +253,6 @@ while (1){
                 }
                 close(sd);
                 pollfds[i].fd = 0;
-                free(siz);
                 
             }
             if (pollfds[i].revents & POLLERR){

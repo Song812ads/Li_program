@@ -14,8 +14,9 @@
 #include <netinet/tcp.h>
 #include <dirent.h>
 #include <poll.h>
+#include <sys/epoll.h>
 
-#define BUFFLEN 256
+#define BUFFLEN 1000
 #define MAX_CLIENTS 2
 
 void pipebroke()
@@ -114,12 +115,9 @@ int main(int argc, char **argv){
     char *buffer = (char* )malloc(BUFFLEN * sizeof(char));
     int clientlength = sizeof(clientadd);
     struct timeval tv;
-    tv.tv_sec = 200;
+    tv.tv_sec = 20;
     tv.tv_usec = 0;
 
-    for (int i=0;i < MAX_CLIENTS + 1;i++){
-        clientSocketfd[i] = 0;
-    }
     // Socket create:
     if ((serverSocketfd = socket(AF_INET, SOCK_STREAM,0))<0){
         perror("Socket create fail");
@@ -128,12 +126,26 @@ int main(int argc, char **argv){
 
     else printf("Socket: %d \n",serverSocketfd);
 
+    int flags = fcntl(serverSocketfd, F_GETFL, 0);
+    if (flags == -1) {
+        perror("fcntl()");
+        exit(1);
+    }
+        if (fcntl(serverSocketfd, F_SETFL, flags | O_NONBLOCK) == -1) {
+        perror("fcntl()");
+        exit(1);
+    }
+    
 
     bzero (&serveradd, sizeof(serveradd));
     serveradd.sin_family = AF_INET;
     serveradd.sin_port = htons ( 6315 );
     serveradd.sin_addr.s_addr = htonl(INADDR_ANY);
-
+    const int enable = 1;
+if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+    error("setsockopt(SO_REUSEADDR) failed");
+if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0)
+    error("setsockopt(SO_REUSEADDR) failed");
 
     if (bind (serverSocketfd, (struct sockaddr*) &serveradd, sizeof( serveradd))!=0){
         perror("Server bind fail");
@@ -150,56 +162,83 @@ int main(int argc, char **argv){
     else printf("Listening...\n");
     bzero(&clientadd,sizeof(clientadd));
 
-struct pollfd pollfds[MAX_CLIENTS+1];
-pollfds[0].fd = serverSocketfd;
-pollfds[0].events = POLLIN | POLLPRI;
-int useClient = 0;
-while (1){
-    int pollResult = poll(pollfds,useClient+1,0);
-    if (pollResult>0){
-        if (pollfds[0].revents & POLLIN){
-            int client_socket = accept(serverSocketfd,(struct sockaddr *)&clientadd, &clientlength);  
-            printf("Client accepted: %s\n", inet_ntoa(clientadd.sin_addr));
-            for (int i = 1; i<MAX_CLIENTS+1;i++){
-                if (pollfds[i].fd == 0){
-                    pollfds[i].fd = client_socket;
-                    pollfds[i].events = POLLIN | POLLPRI;
-                    useClient++;
-                    break;
+    int epoll_fd  = epoll_create1(0);
+    if (epoll_fd == -1){
+        perror("Epoll create fail");
+        exit(1);
+    }
+    struct epoll_event event;
+    memset(&event, 0, sizeof(event));
+    event.data.fd = serverSocketfd;
+    event.events = EPOLLIN | EPOLLET;
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, serverSocketfd, &event) == -1) {
+        perror("epoll_ctl error");
+        exit(1);
+    }
+    struct epoll_event *events = calloc(MAX_CLIENTS, sizeof(event));
+
+    while (1){
+        int nevents = epoll_wait(epoll_fd, events, MAX_CLIENTS, -1);
+            if (nevents == -1) {
+            perror("epoll_wait error");
+            exit(1);
+            }
+        for (int i = 0; i<nevents; i++){
+        if ((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP) ||
+            (!(events[i].events & EPOLLIN))) {
+                perror("Something wrong. Ckient disconnected\n");
+                close(events[i].data.fd);
+                epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd,&event);
+            }
+        else if (events[i].data.fd == serverSocketfd){
+            while (1){
+                int client_socket = accept(serverSocketfd,(struct sockaddr*)&clientadd, &clientlength);
+                if (client_socket == -1){
+                    if (errno  == EAGAIN || errno == EWOULDBLOCK){
+                        break;
+                    }
+                    else {
+                        perror("Accepted fail");
+                        exit(1);
+                    }
                 }
             }
         }
-
-    for (int i =1; i<MAX_CLIENTS+1;i++){
-
-            if (pollfds[i].revents & POLLHUP){
-                printf("Client disconnected: %s\n", inet_ntoa(clientadd.sin_addr));
-            }
-
-            if (pollfds[i].revents & POLLIN){
-                    int sd = pollfds[i].fd;
-                    memset(buffer,'\0',BUFFLEN);
-                    int val = recv(sd,buffer,BUFFLEN,0);
-                    if (val==0){
-                        printf("Client disconnected: %s\n", inet_ntoa(clientadd.sin_addr));
-                        close(sd);
-                        pollfds[i].fd = 0;
-                    
+        else {
+            while(1){
+                int ret = recv(events[i].data.fd,buffer,BUFFLEN,0);
+                if (ret <0){
+                    if (errno == EAGAIN || errno == EWOULDBLOCK){
                         break;
                     }
-                    else if (val<0){
-                        perror("Recv fail");
+                    else{
+                        perror("Read fail");
                         exit(1);
+                }}
+                else if (ret == 0){
+                    printf("Client disconnected\n");
+                    close(events[i].data.fd);
+                    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd,&event);
+                    break;
+                }
+                else {
+                    if (strcmp(buffer,"A")==0){
+                        memset(buffer,'\0',BUFFLEN);
+                        strcpy(buffer,"File");
+                        if (send(sd,buffer,BUFFLEN,0)<0){
+                            perror("Send error");
+                            exit(1);
+                        }
                     }
                     else {
+                    int sd = events[i].data.fd;
                     printf("File client want: %s\n",buffer);
-                    char* path = "C:/cygwin64/home/MSI/storage/";
+                    char* path = "/home/phuongnam/transmit/";
                     size_t len = strlen(path);
                     char* path_buffer = malloc(len+strlen(buffer));
                     memset(path_buffer,'\0',sizeof(path_buffer));
                     strcpy(path_buffer,path);
                     strcpy(path_buffer+len,buffer);
-                    char* siz = malloc(10*sizeof(char));
                     int sz = 0, ti = 0;
                     if (checkfile(path_buffer)==0){
                         printf("File dont exist");
@@ -218,13 +257,7 @@ while (1){
                         while (1){
                         memset(buffer,'\0',BUFFLEN);
                         sz = readn(op,buffer,BUFFLEN);
-                        memset(siz,'\0',10);
-                        sprintf(siz,"%ld",sz);
-                        if (send(sd,siz,sz,0)<0){
-                            perror("Send error1");
-                            exit(1);
-                        }
-                
+                        printf("%d\n",sz);
                         if (send(sd,buffer,sz,0)<0){
                             perror("Send error2");
                             exit(1);
@@ -232,10 +265,11 @@ while (1){
 
                         if (sz < BUFFLEN){
                             memset(buffer,'\0',BUFFLEN);
+                            if (recv(sd,buffer,BUFFLEN,0)==0){
                             printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
                             close(op);
                             break;
-                        }
+                        }}
                         else 
                         {
                             ti++;
@@ -245,17 +279,8 @@ while (1){
                     }  
                 }
                 close(sd);
-                pollfds[i].fd = 0;
-                free(siz);
-                
-            }}
-            if (pollfds[i].revents & POLLERR){
-                perror("Poll");
-            }    
-
+                epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd,&event);
+                }
             }
         }
-    }                   
-    free(buffer);
-    close(serverSocketfd);
-}
+            }}}}

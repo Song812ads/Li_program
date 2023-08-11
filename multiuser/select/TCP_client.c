@@ -165,7 +165,6 @@ int main(int argc, char **argv){
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
-            printf("%s\n",buffer);
             writen(op,buffer,ret);
             // printf("%ld\n",sz);
             if (ret==BUFFLEN){
