@@ -171,7 +171,7 @@ int main(int argc, char **argv){
             printf("%s\n",buffer);
             writen(op,buffer,ret);
             // printf("%ld\n",sz);
-            if (sz>=BUFFLEN){
+            if (ret>=BUFFLEN){
             t++;
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
@@ -184,7 +184,7 @@ int main(int argc, char **argv){
             else {
             close(op);
             close(socketfd);
-            printf("Size from client: %ld\n",t*BUFFLEN+sz);
+            printf("Size from client: %ld\n",t*BUFFLEN+ret);
             break;
             }
         }
