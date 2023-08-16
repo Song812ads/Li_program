@@ -65,27 +65,6 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
   return (n);
 }
 
-void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
-    int fp = open(file, O_RDWR | O_APPEND | O_CREAT | O_SYNC, 0644);
-    if (fp == -1){
-        perror("Error writing file\n");
-        exit(1);
-    }
-    off_t offset = 0;
-    for (int i=0; i < size; i++){
-        ssize_t readnow = pwrite(fp, buffer + offset, 1,t*BUFFLEN + offset);
-        if (readnow < 0){
-            printf("Read unsuccessful \n");
-            free(buffer);
-            close(fp);
-            exit(1);
-        }
-        offset = offset+readnow;
-    }
-    close(fp);
-    printf("File write complete part %d \n",t+1);
-}
-
 int main(int argc, char **argv){
     // Thiết lập phương thức nhận dữ liêu và tạo kết nối đến server
     signal(SIGPIPE,pipebroke);
