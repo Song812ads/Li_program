@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #define BUFFLEN 1000
+typedef enum {FIRST, AFTER} file_mode;
 
 void pipebroke()
 {
@@ -65,6 +66,27 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
   return (n);
 }
 
+void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
+    int fp = open(file, O_RDWR | O_APPEND | O_CREAT | O_SYNC, 0644);
+    if (fp == -1){
+        perror("Error writing file\n");
+        exit(1);
+    }
+    off_t offset = 0;
+    for (int i=0; i < size; i++){
+        ssize_t readnow = pwrite(fp, buffer + offset, 1,t*BUFFLEN + offset);
+        if (readnow < 0){
+            printf("Read unsuccessful \n");
+            free(buffer);
+            close(fp);
+            exit(1);
+        }
+        offset = offset+readnow;
+    }
+    close(fp);
+    printf("File write complete part %d \n",t+1);
+}
+
 int main(int argc, char **argv){
     // Thiết lập phương thức nhận dữ liêu và tạo kết nối đến server
     signal(SIGPIPE,pipebroke);
@@ -95,7 +117,11 @@ int main(int argc, char **argv){
         exit(1);
     }
 
-
+    if (connect(socketfd,(struct sockaddr *)&serveradd, sizeof(serveradd))<0){
+        perror("Connection fail");
+        close(socketfd);
+        exit(1);
+    }
 
     int optval = 1;
     socklen_t optlen = sizeof(optval);
@@ -111,11 +137,6 @@ int main(int argc, char **argv){
         printf( "setsockopt fail\n" );
 
     while(1){
-    if (connect(socketfd,(struct sockaddr *)&serveradd, sizeof(serveradd))<0){
-        perror("Connection fail");
-        close(socketfd);
-        exit(1);
-    }
         char* filename=NULL;
         size_t len_file = 0;
         ssize_t rdn;
@@ -141,10 +162,6 @@ int main(int argc, char **argv){
                 exit(1);
             }
             printf("File available: %s\n",buffer);
-        }
-        else if (strcmp(filename,"Q")==0){
-            close(socketfd);
-            exit(1);
         }
         else break;
     }
