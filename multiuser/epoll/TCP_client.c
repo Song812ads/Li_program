@@ -153,6 +153,7 @@ int main(int argc, char **argv){
         }
         else if (strcmp(filename,"Q")==0){
             close(socketfd);
+            exit(1);
         }
         else break;
     }
