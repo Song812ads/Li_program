@@ -13,8 +13,56 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <dirent.h>
+#include <pthread.h>
 #define BUFFLEN 1000
-#define MAX_CLIENTS 2
+#define MAX_CLIENTS 10
+
+pthread_cond_t  got_request   = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t request_mutex = PTHREAD_MUTEX_INITIALIZER;
+struct request {
+    int socket;
+    struct request* next;
+    struct sockaddr_in clientadd;
+    unsigned int  clientlength;
+};
+static int num_req = 0;
+struct request* req = NULL;  //head
+struct request* last_req = NULL; //tail
+void handle(int socket, struct sockaddr_in clientadd, unsigned int clientlength);
+
+void* handle_request(){
+    pthread_mutex_lock(&request_mutex);
+    while (1){
+        if (num_req == 0) pthread_cond_wait(&got_request,&request_mutex);
+        int socket = req->socket;
+        struct sockaddr_in clientadd = req->clientadd;
+        unsigned int clientlength = req->clientlength;
+        struct request* head = last_req;
+        while (head->next->next!=NULL)
+            head = head->next;
+        req = head;
+        req->next = NULL;
+        num_req --;
+        handle(socket,clientadd,clientlength);
+    }
+}
+
+void add_req(int socket, struct sockaddr_in clientadd, unsigned int clientlength){
+    pthread_mutex_lock(&request_mutex);
+    if (num_req == 0){
+        req->socket = socket;
+        req->clientadd = clientadd;
+        req->clientlength = clientlength;
+        req->next = NULL;
+    }
+    struct request* new = NULL;
+    new->next = last_req;
+    new->socket = socket;
+    last_req = new;
+    num_req++;
+    pthread_mutex_unlock(&request_mutex);
+    pthread_cond_signal(&got_request);
+}
 
 void pipebroke()
 {
@@ -26,6 +74,7 @@ void exithandler()
     printf("\nExiting....\n");
     exit(EXIT_FAILURE);
 }
+
 
 ssize_t  readn(int fd, void *vptr, size_t n)
 {    size_t  nleft;
@@ -84,7 +133,6 @@ void checkfolder(unsigned char* buffer){
     }
 }
 
-
 int checkfile(unsigned char* buffer){
     if (access(buffer, F_OK) == -1){
         printf("File don't exist\n");
@@ -100,6 +148,60 @@ int checkfile(unsigned char* buffer){
     }
 }
 
+void handle(int socket, struct sockaddr_in clientadd, unsigned int  clientlength){
+    int sd = socket;
+    char buffer[BUFFLEN];
+    memset(buffer,'\0',BUFFLEN);
+    if (read(sd,buffer,BUFFLEN)==0){
+        getpeername(sd , (struct sockaddr*)&clientadd , (socklen_t*)&clientlength);
+        printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(clientadd.sin_addr) , ntohs(clientadd.sin_port));
+        close(socket);
+    }
+    else {
+        printf("File client want: %s\n",buffer);
+        char* path = "/home/phuongnam/transmit/";
+        size_t len = strlen(path);
+        char* path_buffer = malloc(len+strlen(buffer));
+        memset(path_buffer,'\0',sizeof(path_buffer));
+        strcpy(path_buffer,path);
+        strcpy(path_buffer+len,buffer);
+        int sz = 0, ti = 0;
+        if (checkfile(path_buffer)==0){
+            printf("File dont exist");
+            memset(buffer,'\0',BUFFLEN);
+            strcpy(buffer,"Err");
+            if (send(sd,buffer,BUFFLEN,0)<0){
+                perror("Send error");
+                exit(1);
+            }
+        }
+        else {
+            int op = open(path_buffer, O_RDONLY);
+            free(path_buffer);
+            lseek(op,0,SEEK_SET);
+            while (1){
+            memset(buffer,'\0',BUFFLEN);
+            sz = readn(op,buffer,BUFFLEN);
+            if (send(sd,buffer,sz,0)<0){
+                perror("Send error2");
+                exit(1);
+            }
+            if (sz < BUFFLEN){
+                memset(buffer,'\0',BUFFLEN);
+                printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
+                close(op);
+                break;
+            }
+            else 
+            {
+                ti++;
+                sz = 0;
+                lseek(op,ti*BUFFLEN,SEEK_SET);
+            }
+        }
+    }}}
+            
+
 int main(int argc, char **argv){
     signal(SIGPIPE,pipebroke);
     signal(SIGINT,exithandler);
@@ -109,23 +211,16 @@ int main(int argc, char **argv){
     int serverSocketfd,  valread, sd;
     int clientSocketfd[MAX_CLIENTS];
     struct sockaddr_in serveradd, clientadd;
-    char buffer[BUFFLEN];
+    char *buffer = (char* )malloc(BUFFLEN * sizeof(char));
     int clientlength = sizeof(clientadd);
-    struct timeval tv;
-    tv.tv_sec = 200;
-    tv.tv_usec = 0;
-
-    for (int i=0;i < MAX_CLIENTS;i++){
-        clientSocketfd[i] = 0;
-    }
-    // Socket create:
+    pthread_t thread;
+    pthread_create(&thread, NULL, handle_request,NULL);
     if ((serverSocketfd = socket(AF_INET, SOCK_STREAM,0))<0){
         perror("Socket create fail");
         exit(1);
     }
 
     else printf("Socket: %d \n",serverSocketfd);
-
 
     bzero (&serveradd, sizeof(serveradd));
     serveradd.sin_family = AF_INET;
@@ -150,24 +245,12 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
         exit(1);
     }
     else printf("Listening...\n");
-    bzero(&clientadd,sizeof(clientadd));
 
+    bzero(&clientadd,sizeof(clientadd));
 while (1){
     FD_ZERO(&readfds);
     FD_SET(serverSocketfd,&readfds);
-    int max_sd = serverSocketfd;
-
-    for (int i =0; i<MAX_CLIENTS; i++){
-        sd = clientSocketfd[i];
-        if (sd>0){
-            FD_SET(sd, &readfds);
-        }
-        if (sd > max_sd){
-            max_sd = sd;
-        }
-    }
-
-    int activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);
+    int activity = select( serverSocketfd + 1 , &readfds , NULL , NULL , NULL);
     if ((activity < 0) && (errno!=EINTR)) 
     {
         printf("select error");
@@ -182,89 +265,9 @@ while (1){
             }
             printf("New connection ,ip is : %s , port : %d \n" , new_socket , inet_ntoa(clientadd.sin_addr) 
             , ntohs(clientadd.sin_port));
-              
-            //add new socket to array of sockets
-            for (int i = 0; i < MAX_CLIENTS; i++) 
-            {
-                //if position is empty
-                if( clientSocketfd[i] == 0 )
-                {
-                    clientSocketfd[i] = new_socket;
-
-                    printf("Adding to list of sockets as %d\n" , i+1);
-                    break;
-                }
-            }
+            add_req(new_socket,clientadd,clientlength);
         }
-
-        for (int i =0; i<MAX_CLIENTS; i++){
-            sd = clientSocketfd[i];
-            if (FD_ISSET(sd,&readfds)){
-                if (valread = read(sd,buffer,BUFFLEN)==0){
-                    getpeername(sd , (struct sockaddr*)&clientadd , (socklen_t*)&clientlength);
-                    printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(clientadd.sin_addr) , ntohs(clientadd.sin_port));
-                    close(sd);
-                    clientSocketfd[i] = 0;
-                }
-                else{
-                    // do{
-                    if (strcmp(buffer,"A")==0){
-                        memset(buffer,'\0',BUFFLEN);
-                        strcpy(buffer,"File");
-                        if (send(sd,buffer,BUFFLEN,0)<0){
-                            perror("Send error");
-                            exit(1);
-                        }
-                    }
-                    else {
-
-                    printf("File client want: %s\n",buffer);
-                    char* path = "/home/phuongnam/transmit/";
-                    size_t len = strlen(path);
-                    char* path_buffer = malloc(len+strlen(buffer));
-                    memset(path_buffer,'\0',sizeof(path_buffer));
-                    strcpy(path_buffer,path);
-                    strcpy(path_buffer+len,buffer);
-                    char* siz = malloc(10*sizeof(char));
-                    int sz = 0, ti = 0;
-                    if (checkfile(path_buffer)==0){
-                        printf("File dont exist");
-                        memset(buffer,'\0',BUFFLEN);
-                        strcpy(buffer,"Err");
-                        if (send(sd,buffer,BUFFLEN,0)<0){
-                            perror("Send error");
-                            break;
-                        }
-                    }
-                    else {
-                        int op = open(path_buffer, O_RDONLY);
-                        free(path_buffer);
-                        lseek(op,0,SEEK_SET);
-                        while (1){
-                        memset(buffer,'\0',BUFFLEN);
-                        sz = readn(op,buffer,BUFFLEN);
-                        if (send(sd,buffer,sz,0)<0){
-                            perror("Send error2");
-                            exit(1);
-                        }
-                        if (sz < BUFFLEN){
-                            memset(buffer,'\0',BUFFLEN);
-                            printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
-                            close(op);
-                            break;
-                        }
-                        else 
-                        {
-                            ti++;
-                            sz = 0;
-                            lseek(op,ti*BUFFLEN,SEEK_SET);
-                        }
-                    }  
-                close(sd);
-                clientSocketfd[i] = 0;
-                }
-                free(siz);
-        }}}}}
+    }
     free(buffer);
     close(serverSocketfd);
 }
