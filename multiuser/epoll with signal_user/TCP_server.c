@@ -250,6 +250,9 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                             exit(1);
                         }
                     }
+
+
+
                     else {
                     int sd = events[i].data.fd;
                     printf("File client want: %s\n",buffer);
@@ -297,8 +300,8 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                         }
                     }  
                 }
-                close(sd);
-                epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd,&event);
+                        close(sd);
+                        epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd,&event);
                 }
             }
         }

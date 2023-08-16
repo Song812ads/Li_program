@@ -95,11 +95,7 @@ int main(int argc, char **argv){
         exit(1);
     }
 
-    if (connect(socketfd,(struct sockaddr *)&serveradd, sizeof(serveradd))<0){
-        perror("Connection fail");
-        close(socketfd);
-        exit(1);
-    }
+
 
     int optval = 1;
     socklen_t optlen = sizeof(optval);
@@ -115,6 +111,11 @@ int main(int argc, char **argv){
         printf( "setsockopt fail\n" );
 
     while(1){
+    if (connect(socketfd,(struct sockaddr *)&serveradd, sizeof(serveradd))<0){
+        perror("Connection fail");
+        close(socketfd);
+        exit(1);
+    }
         char* filename=NULL;
         size_t len_file = 0;
         ssize_t rdn;
