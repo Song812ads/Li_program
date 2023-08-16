@@ -113,8 +113,6 @@ int main(int argc, char **argv){
         exit(1);
     }
 
-
-    while(1){
     if ((socketfd = socket(AF_INET, SOCK_STREAM,0))<0){
         perror("Socket create fail\n");
         exit(1);
@@ -125,6 +123,8 @@ int main(int argc, char **argv){
         close(socketfd);
         exit(1);
     }
+
+    while(1){
         char* filename=NULL;
         size_t len_file = 0;
         ssize_t rdn;

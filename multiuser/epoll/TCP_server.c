@@ -262,7 +262,6 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                     strcpy(path_buffer+len,buffer);
                     int sz = 0, ti = 0;
                     if (checkfile(path_buffer)==0){
-                        printf("File dont exist");
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,"Err");
                         while (send(sd,buffer,sz,0)<0){
@@ -292,7 +291,7 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                             }
                         }
 
-                        if (sz < BUFFLEN){
+                        while (sz < BUFFLEN){
                             memset(buffer,'\0',BUFFLEN);
                             int ret;
                             while ((ret = read(sd,buffer,BUFFLEN))<0){
@@ -307,16 +306,21 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                             if (ret == 0){
                             printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
                             close(op);
-                            break;
+                            goto end;
                         }
                             else{
-                                printf("Client continue");
                                 close(op);
+                                if (strcmp(buffer,"Q")==0){
+                                    printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
+                                    goto end;    
+                                }
+                                else {
+                                printf("Client continue");
                                 goto start;
-                            }
+                            }}
                         
                         }
-                        else 
+                        if (sz == BUFFLEN)
                         {
                             ti++;
                             sz = 0;
@@ -324,6 +328,7 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                         }
                     }  
                 }
+            end:
                 close(events[i].data.fd);
                 epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd,&event);
                 break;
