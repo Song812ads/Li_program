@@ -109,7 +109,7 @@ int main(int argc, char **argv){
     int serverSocketfd,  valread, sd;
     int clientSocketfd[MAX_CLIENTS];
     struct sockaddr_in serveradd, clientadd;
-    char buffer[BUFFLEN];
+    char *buffer = (char* )malloc(BUFFLEN * sizeof(char));
     int clientlength = sizeof(clientadd);
     struct timeval tv;
     tv.tv_sec = 200;
@@ -152,9 +152,10 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
     else printf("Listening...\n");
     bzero(&clientadd,sizeof(clientadd));
 
-while (1){
     FD_ZERO(&readfds);
+while (1){
     FD_SET(serverSocketfd,&readfds);
+
     int max_sd = serverSocketfd;
 
     for (int i =0; i<MAX_CLIENTS; i++){
@@ -175,12 +176,12 @@ while (1){
 
     if (FD_ISSET(serverSocketfd, &readfds)) 
         {
-            if (( new_socket = accept(serverSocketfd, (struct sockaddr *)&clientadd, (socklen_t*)&clientlength))<0)
+            if (( new_socket = accept(serverSocketfd, (struct sockaddr *)&clientadd, &clientlength))<0)
             {
                 perror("accept");
-                exit(EXIT_FAILURE);
+                exit(1);
             }
-            printf("New connection ,ip is : %s , port : %d \n" , new_socket , inet_ntoa(clientadd.sin_addr) 
+            printf("New connection ,ip is : %s , port : %d \n"  , inet_ntoa(clientadd.sin_addr) 
             , ntohs(clientadd.sin_port));
               
             //add new socket to array of sockets
@@ -196,7 +197,7 @@ while (1){
                 }
             }
         }
-
+    else {
         for (int i =0; i<MAX_CLIENTS; i++){
             sd = clientSocketfd[i];
             if (FD_ISSET(sd,&readfds)){
@@ -217,7 +218,13 @@ while (1){
                         }
                     }
                     else {
-
+                    // else break;
+                    // memset(buffer,'\0',BUFFLEN);
+                    // if (recv(sd,buffer,BUFFLEN,0)<0){  
+                    //     perror("Rcv error");
+                    //     exit(1);
+                    // }
+                    // }while(1);
                     printf("File client want: %s\n",buffer);
                     char* path = "/home/phuongnam/transmit/";
                     size_t len = strlen(path);
@@ -243,10 +250,14 @@ while (1){
                         while (1){
                         memset(buffer,'\0',BUFFLEN);
                         sz = readn(op,buffer,BUFFLEN);
+                        // printf("%s\n",buffer);
+             
                         if (send(sd,buffer,sz,0)<0){
                             perror("Send error2");
                             exit(1);
                         }
+
+
                         if (sz < BUFFLEN){
                             memset(buffer,'\0',BUFFLEN);
                             printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
@@ -264,7 +275,7 @@ while (1){
                 clientSocketfd[i] = 0;
                 }
                 free(siz);
-        }}}}}
+        }}}}}}
     free(buffer);
     close(serverSocketfd);
 }
