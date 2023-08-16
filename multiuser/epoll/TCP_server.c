@@ -242,6 +242,7 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                     break;
                 }
                 else {
+                start: 
                     if (strcmp(buffer,"A")==0){
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,"File");
@@ -294,12 +295,12 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                         if (sz < BUFFLEN){
                             memset(buffer,'\0',BUFFLEN);
                             int ret;
-                            while ((ret = recv(sd,buffer,BUFFLEN,0))<0){
+                            while ((ret = read(sd,buffer,BUFFLEN))<0){
                             if (errno == EAGAIN || errno == EWOULDBLOCK){
                                 continue;
                             }
                             else {
-                                perror("Recv fail");
+                                perror("Read fail");
                                 exit(1);
                             }
                             }
@@ -307,7 +308,14 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                             printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
                             close(op);
                             break;
-                        }}
+                        }
+                            else{
+                                printf("Client continue");
+                                close(op);
+                                goto start;
+                            }
+                        
+                        }
                         else 
                         {
                             ti++;

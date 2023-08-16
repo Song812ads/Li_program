@@ -184,7 +184,7 @@ int main(int argc, char **argv){
             }
             else {
             close(op);
-            // close(socketfd);
+            close(socketfd);
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
             break;
             }
