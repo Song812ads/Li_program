@@ -264,7 +264,7 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                     if (checkfile(path_buffer)==0){
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,"Err");
-                        while (send(sd,buffer,sz,0)<0){
+                        while (send(sd,buffer,BUFFLEN,0)<0){
                             if (errno == EAGAIN || errno == EWOULDBLOCK){
                                 continue;
                             }
@@ -273,6 +273,7 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                                 exit(1);
                             }
                         }
+                        goto check;
                     }
                     else {
                         int op = open(path_buffer, O_RDONLY);
@@ -294,6 +295,7 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                         while (sz < BUFFLEN){
                             memset(buffer,'\0',BUFFLEN);
                             int ret;
+                        check:
                             while ((ret = read(sd,buffer,BUFFLEN))<0){
                             if (errno == EAGAIN || errno == EWOULDBLOCK){
                                 continue;

@@ -167,7 +167,6 @@ int main(int argc, char **argv){
         //  printf("%s\n",buffer);
         if (strcmp(buffer,"Err")==0){
             printf("File not exist");
-            break;
         }
         else  {
             ssize_t t = 0;
