@@ -308,7 +308,7 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                             close(op);
                             goto end;
                         }
-                            else{
+                            if (ret>0){
                                 close(op);
                                 if (strcmp(buffer,"Q")==0){
                                     printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
