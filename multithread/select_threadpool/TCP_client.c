@@ -23,7 +23,6 @@ void exithandler()
     exit(EXIT_FAILURE);
 }
 
-
 ssize_t  readn(int fd, void *vptr, size_t n)
 {    size_t  nleft;
     ssize_t nread;
@@ -66,15 +65,37 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
     }
   return (n);
 }
+
+void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
+    int fp = open(file, O_RDWR | O_APPEND | O_CREAT | O_SYNC, 0644);
+    if (fp == -1){
+        perror("Error writing file\n");
+        exit(1);
+    }
+    off_t offset = 0;
+    for (int i=0; i < size; i++){
+        ssize_t readnow = pwrite(fp, buffer + offset, 1,t*BUFFLEN + offset);
+        if (readnow < 0){
+            printf("Read unsuccessful \n");
+            free(buffer);
+            close(fp);
+            exit(1);
+        }
+        offset = offset+readnow;
+    }
+    close(fp);
+    printf("File write complete part %d \n",t+1);
+}
+
 int main(int argc, char **argv){
     // Thiết lập phương thức nhận dữ liêu và tạo kết nối đến server
     signal(SIGPIPE,pipebroke);
     signal(SIGINT,exithandler);
     int socketfd; 
     struct sockaddr_in serveradd;
-    unsigned char *buffer = (unsigned char* )malloc(BUFFLEN * sizeof(unsigned char));
+    unsigned char *buffer = (unsigned char* )malloc((BUFFLEN+1) * sizeof(unsigned char));
     
-    if (argc!=3){
+    if (argc!=4){
         printf("Wrong type <server addresss> <server port>\n");
         exit(1);
     }
@@ -101,23 +122,20 @@ int main(int argc, char **argv){
         close(socketfd);
         exit(1);
     }
-    
-    // int optval = 1;
-    // socklen_t optlen = sizeof(optval);
-    // if(setsockopt(socketfd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
-    //   perror("setsockopt()");
-    //   close(socketfd);
-    //   exit(EXIT_FAILURE);
-    // }s
 
-    struct timeval tv;
-    tv.tv_sec = 20;  /* 20 Secs Timeout */
-    tv.tv_usec = 0;
-    if(setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO,(char *)&tv,sizeof(tv)) < 0)
-    {
-        printf("Time Out\n");
-        return -1;
+    int optval = 1;
+    socklen_t optlen = sizeof(optval);
+    if(setsockopt(socketfd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
+      perror("setsockopt()");
+      close(socketfd);
+      exit(EXIT_FAILURE);
     }
+    struct timeval tv;
+    tv.tv_sec = 20;
+    tv.tv_usec = 0;
+        if( setsockopt (socketfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0 )
+        printf( "setsockopt fail\n" );
+
     while(1){
         char* filename=NULL;
         size_t len_file = 0;
@@ -145,19 +163,21 @@ int main(int argc, char **argv){
             }
             printf("File available: %s\n",buffer);
         }
+        else if (strcmp(filename,"Q")==0){
+            close(socketfd);
+        }
         else break;
     }
+        int ret = 0;
         memset(buffer,'\0',BUFFLEN);
-        int ret;
-        if ( (ret =recv(socketfd,buffer,BUFFLEN,0))<0){
+        if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
             perror("Recv error");
             exit(1);
             // if (a==0) exit(1);
         }
-        
+        //  printf("%s\n",buffer);
         if (strcmp(buffer,"Err")==0){
-            printf("File not exist");
-            break;
+            printf("File not exist\n");
         }
         else  {
             ssize_t t = 0;
@@ -166,27 +186,26 @@ int main(int argc, char **argv){
             lseek(op,0,SEEK_SET);
         while (1){
             writen(op,buffer,ret);
-            // printf("%ld\n",sz);
             if (ret==BUFFLEN){
             t++;
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
-            if ((ret=recv(socketfd,buffer,BUFFLEN,0))<0){
+            if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
                 perror("Recv error");
                 exit(1);
             }
             }
             else {
             close(op);
-            close(socketfd);
+            // close(socketfd);
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
             break;
             }
         }
         
         }
-        break;
+        // break;
         }
 
     free(buffer);

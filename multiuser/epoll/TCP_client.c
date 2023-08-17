@@ -101,7 +101,11 @@ int main(int argc, char **argv){
     }
 
     // Socket create:
-
+    if ((socketfd = socket(AF_INET, SOCK_STREAM,0))<0){
+        perror("Socket create fail\n");
+        exit(1);
+    }
+    else printf("Socket: %d \n",socketfd);
 
     bzero (&serveradd, sizeof(serveradd));
     serveradd.sin_family = AF_INET;
@@ -113,16 +117,24 @@ int main(int argc, char **argv){
         exit(1);
     }
 
-    if ((socketfd = socket(AF_INET, SOCK_STREAM,0))<0){
-        perror("Socket create fail\n");
-        exit(1);
-    }
-    else printf("Socket: %d \n",socketfd);
     if (connect(socketfd,(struct sockaddr *)&serveradd, sizeof(serveradd))<0){
         perror("Connection fail");
         close(socketfd);
         exit(1);
     }
+
+    int optval = 1;
+    socklen_t optlen = sizeof(optval);
+    if(setsockopt(socketfd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
+      perror("setsockopt()");
+      close(socketfd);
+      exit(EXIT_FAILURE);
+    }
+    struct timeval tv;
+    tv.tv_sec = 20;
+    tv.tv_usec = 0;
+        if( setsockopt (socketfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0 )
+        printf( "setsockopt fail\n" );
 
     while(1){
         char* filename=NULL;
@@ -135,7 +147,10 @@ int main(int argc, char **argv){
             break;
         }
         filename[strlen(filename)-1] = '\0';
-        
+        if (strcmp(filename,"Q")==0){
+            close(socketfd);
+            exit(1);
+        }
         memset(buffer,'\0',BUFFLEN);
         strcpy(buffer,filename);
         if (send(socketfd,buffer,BUFFLEN,0)<0){
@@ -151,10 +166,6 @@ int main(int argc, char **argv){
             }
             printf("File available: %s\n",buffer);
         }
-        else if (strcmp(filename,"Q")==0){
-            close(socketfd);
-            exit(1);
-        }
         else break;
     }
         int ret = 0;
@@ -166,7 +177,7 @@ int main(int argc, char **argv){
         }
         //  printf("%s\n",buffer);
         if (strcmp(buffer,"Err")==0){
-            printf("File not exist");
+            printf("File not exist\n");
         }
         else  {
             ssize_t t = 0;

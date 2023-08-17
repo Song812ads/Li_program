@@ -163,6 +163,9 @@ int main(int argc, char **argv){
             }
             printf("File available: %s\n",buffer);
         }
+        else if (strcmp(filename,"Q")==0){
+            close(socketfd);
+        }
         else break;
     }
         int ret = 0;
@@ -174,8 +177,7 @@ int main(int argc, char **argv){
         }
         //  printf("%s\n",buffer);
         if (strcmp(buffer,"Err")==0){
-            printf("File not exist");
-            break;
+            printf("File not exist\n");
         }
         else  {
             ssize_t t = 0;
@@ -196,14 +198,14 @@ int main(int argc, char **argv){
             }
             else {
             close(op);
-            close(socketfd);
+            // close(socketfd);
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
             break;
             }
         }
         
         }
-        break;
+        // break;
         }
 
     free(buffer);

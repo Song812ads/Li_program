@@ -89,15 +89,12 @@ void checkfolder(unsigned char* buffer){
 
 int checkfile(unsigned char* buffer){
     if (access(buffer, F_OK) == -1){
-        printf("File don't exist\n");
         return 0;
     }
     else if (access(buffer,R_OK) == -1){
-        printf("Cant read file\n");
         return 0;
     }
     else {
-        printf("File prepare to read\n");
         return 1;
     }
 }
@@ -136,8 +133,7 @@ int main(int argc, char **argv){
     const int enable = 1;
 if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
     error("setsockopt(SO_REUSEADDR) failed");
-if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0)
-    error("setsockopt(SO_REUSEADDR) failed");
+
 
     if (bind (serverSocketfd, (struct sockaddr*) &serveradd, sizeof( serveradd))!=0){
         perror("Server bind fail");
@@ -180,7 +176,7 @@ while (1){
                 printf("Client disconnected: %s\n", inet_ntoa(clientadd.sin_addr));
             }
 
-            if (pollfds[i].revents & POLLIN){
+            else if (pollfds[i].revents & POLLIN){
                     int sd = pollfds[i].fd;
                     memset(buffer,'\0',BUFFLEN);
                     int val = recv(sd,buffer,BUFFLEN,0);
@@ -188,7 +184,6 @@ while (1){
                         printf("Client disconnected: %s\n", inet_ntoa(clientadd.sin_addr));
                         close(sd);
                         pollfds[i].fd = 0;
-                    
                         break;
                     }
                     else if (val<0){
@@ -214,7 +209,7 @@ while (1){
                     strcpy(path_buffer+len,buffer);
                     int sz = 0, ti = 0;
                     if (checkfile(path_buffer)==0){
-                        printf("File dont exist");
+                        printf("File dont exist\n");
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,"Err");
                         if (send(sd,buffer,strlen(buffer),0)<0){
@@ -237,12 +232,10 @@ while (1){
                         }
 
                         if (sz < BUFFLEN){
-                            memset(buffer,'\0',BUFFLEN);
-                            if (recv(sd,buffer,BUFFLEN,0)==0){
-                            printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
+                            printf("Transmit: %ld\n",ti*BUFFLEN+sz);
                             close(op);
                             break;
-                        }}
+                        }
                         else 
                         {
                             ti++;
@@ -251,15 +244,10 @@ while (1){
                         }
                     }  
                 }
-                close(sd);
-                pollfds[i].fd = 0;
-                
-            }
-            if (pollfds[i].revents & POLLERR){
-                perror("Poll");
-            }    
-
             }}}
+            else if (pollfds[i].revents & POLLERR){
+                perror("Poll");
+            }}
         }
     }                   
     free(buffer);

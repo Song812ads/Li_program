@@ -157,16 +157,32 @@ int checkfile(unsigned char* buffer){
 }
 
 void handle(int socket, struct sockaddr_in clientadd, unsigned int  clientlength){
-    printf("In here\n");
     int sd = socket;
     char buffer[BUFFLEN];
+    int ret;
+start:
+while (1){
     memset(buffer,'\0',BUFFLEN);
-    if (read(sd,buffer,BUFFLEN)==0){
-        getpeername(sd , (struct sockaddr*)&clientadd , (socklen_t*)&clientlength);
-        printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(clientadd.sin_addr) , ntohs(clientadd.sin_port));
-        close(socket);
+    ret= read(sd,buffer,BUFFLEN);
+    if (ret <0){  
+        perror("Rcv error");
+        exit(1);
     }
-    else {
+    else if (ret ==0){
+        printf("Client disconnect\n");
+        close(sd);
+        break;
+    }
+    if (strcmp(buffer,"A")==0){
+        memset(buffer,'\0',BUFFLEN);
+        strcpy(buffer,"File");
+        if (send(sd,buffer,BUFFLEN,0)<0){
+            perror("Send error");
+            exit(1);
+        }
+    }
+    else break;}
+    if (ret > 0) {
         printf("File client want: %s\n",buffer);
         char* path = "/home/phuongnam/transmit/";
         size_t len = strlen(path);
@@ -176,13 +192,14 @@ void handle(int socket, struct sockaddr_in clientadd, unsigned int  clientlength
         strcpy(path_buffer+len,buffer);
         int sz = 0, ti = 0;
         if (checkfile(path_buffer)==0){
-            printf("File dont exist");
+            printf("File dont exist\n");
             memset(buffer,'\0',BUFFLEN);
             strcpy(buffer,"Err");
             if (send(sd,buffer,BUFFLEN,0)<0){
                 perror("Send error");
                 exit(1);
             }
+            goto start;
         }
         else {
             int op = open(path_buffer, O_RDONLY);
@@ -196,10 +213,9 @@ void handle(int socket, struct sockaddr_in clientadd, unsigned int  clientlength
                 exit(1);
             }
             if (sz < BUFFLEN){
-                memset(buffer,'\0',BUFFLEN);
                 printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
                 close(op);
-                break;
+                goto start;
             }
             else 
             {
@@ -241,8 +257,7 @@ int main(int argc, char **argv){
    const int enable = 1;
 if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
     perror("setsockopt(SO_REUSEADDR) failed");
-if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0)
-    perror("setsockopt(SO_REUSEADDR) failed");
+
     if (bind (serverSocketfd, (struct sockaddr*) &serveradd, sizeof( serveradd))!=0){
         perror("Server bind fail");
         close(serverSocketfd);

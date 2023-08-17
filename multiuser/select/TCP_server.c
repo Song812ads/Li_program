@@ -87,15 +87,12 @@ void checkfolder(unsigned char* buffer){
 
 int checkfile(unsigned char* buffer){
     if (access(buffer, F_OK) == -1){
-        printf("File don't exist\n");
         return 0;
     }
     else if (access(buffer,R_OK) == -1){
-        printf("Cant read file\n");
         return 0;
     }
     else {
-        printf("File prepare to read\n");
         return 1;
     }
 }
@@ -135,8 +132,7 @@ int main(int argc, char **argv){
    const int enable = 1;
 if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
     perror("setsockopt(SO_REUSEADDR) failed");
-if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0)
-    perror("setsockopt(SO_REUSEADDR) failed");
+
     if (bind (serverSocketfd, (struct sockaddr*) &serveradd, sizeof( serveradd))!=0){
         perror("Server bind fail");
         close(serverSocketfd);
@@ -201,14 +197,19 @@ while (1){
         for (int i =0; i<MAX_CLIENTS; i++){
             sd = clientSocketfd[i];
             if (FD_ISSET(sd,&readfds)){
-                if (valread = read(sd,buffer,BUFFLEN)==0){
+                memset(buffer,'\0',BUFFLEN);
+                valread = read(sd,buffer,BUFFLEN);
+                if (valread==0){
                     getpeername(sd , (struct sockaddr*)&clientadd , (socklen_t*)&clientlength);
                     printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(clientadd.sin_addr) , ntohs(clientadd.sin_port));
                     close(sd);
                     clientSocketfd[i] = 0;
                 }
+                else if (valread < 0){
+                    perror("Read error");
+                    exit(1);
+                }
                 else{
-                    // do{
                     if (strcmp(buffer,"A")==0){
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,"File");
@@ -218,13 +219,6 @@ while (1){
                         }
                     }
                     else {
-                    // else break;
-                    // memset(buffer,'\0',BUFFLEN);
-                    // if (recv(sd,buffer,BUFFLEN,0)<0){  
-                    //     perror("Rcv error");
-                    //     exit(1);
-                    // }
-                    // }while(1);
                     printf("File client want: %s\n",buffer);
                     char* path = "/home/phuongnam/transmit/";
                     size_t len = strlen(path);
@@ -232,10 +226,9 @@ while (1){
                     memset(path_buffer,'\0',sizeof(path_buffer));
                     strcpy(path_buffer,path);
                     strcpy(path_buffer+len,buffer);
-                    char* siz = malloc(10*sizeof(char));
                     int sz = 0, ti = 0;
                     if (checkfile(path_buffer)==0){
-                        printf("File dont exist");
+                        printf("File dont exist\n");
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,"Err");
                         if (send(sd,buffer,BUFFLEN,0)<0){
@@ -250,17 +243,12 @@ while (1){
                         while (1){
                         memset(buffer,'\0',BUFFLEN);
                         sz = readn(op,buffer,BUFFLEN);
-                        // printf("%s\n",buffer);
-             
                         if (send(sd,buffer,sz,0)<0){
                             perror("Send error2");
                             exit(1);
                         }
-
-
                         if (sz < BUFFLEN){
-                            memset(buffer,'\0',BUFFLEN);
-                            printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
+                            printf("Transmit: %ld\n",ti*BUFFLEN+sz);
                             close(op);
                             break;
                         }
@@ -271,10 +259,7 @@ while (1){
                             lseek(op,ti*BUFFLEN,SEEK_SET);
                         }
                     }  
-                close(sd);
-                clientSocketfd[i] = 0;
                 }
-                free(siz);
         }}}}}}
     free(buffer);
     close(serverSocketfd);

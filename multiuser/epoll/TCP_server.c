@@ -242,7 +242,6 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                     break;
                 }
                 else {
-                start: 
                     if (strcmp(buffer,"A")==0){
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,"File");
@@ -264,16 +263,15 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                     if (checkfile(path_buffer)==0){
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,"Err");
-                        while (send(sd,buffer,BUFFLEN,0)<0){
+                        if (send(sd,buffer,BUFFLEN,0)<0){
                             if (errno == EAGAIN || errno == EWOULDBLOCK){
-                                continue;
+                                break;
                             }
                             else {
                                 perror("Send error");
                                 exit(1);
                             }
                         }
-                        goto check;
                     }
                     else {
                         int op = open(path_buffer, O_RDONLY);
@@ -292,35 +290,8 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                             }
                         }
 
-                        while (sz < BUFFLEN){
-                            memset(buffer,'\0',BUFFLEN);
-                            int ret;
-                        check:
-                            while ((ret = read(sd,buffer,BUFFLEN))<0){
-                            if (errno == EAGAIN || errno == EWOULDBLOCK){
-                                continue;
-                            }
-                            else {
-                                perror("Read fail");
-                                exit(1);
-                            }
-                            }
-                            if (ret == 0){
-                            printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
-                            close(op);
-                            goto end;
-                        }
-                            if (ret>0){
-                                close(op);
-                                if (strcmp(buffer,"Q")==0){
-                                    printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
-                                    goto end;    
-                                }
-                                else {
-                                printf("Client continue");
-                                goto start;
-                            }}
-                        
+                        if (sz < BUFFLEN){
+                            printf("Transmit: %ld\n",ti*BUFFLEN+sz);  
                         }
                         if (sz == BUFFLEN)
                         {
@@ -330,7 +301,6 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                         }
                     }  
                 }
-            end:
                 close(events[i].data.fd);
                 epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd,&event);
                 break;

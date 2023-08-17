@@ -158,8 +158,7 @@ int main(int argc, char **argv){
     const int enable = 1;
 if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
     error("setsockopt(SO_REUSEADDR) failed");
-if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0)
-    error("setsockopt(SO_REUSEADDR) failed");
+
     if (bind (serverSocketfd, (struct sockaddr*) &serveradd, sizeof( serveradd))!=0){
         perror("Server bind fail");
         close(serverSocketfd);
@@ -175,7 +174,7 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
     else printf("Listening...\n");
     bzero(&clientadd,sizeof(clientadd));
 
-
+begin:
 while(1){
     // memset(buffer,'\0',BUFFLEN);
     if ((clientSocketfd = accept(serverSocketfd, (struct sockaddr*) &clientadd, &clientlength))==-1){
@@ -193,11 +192,19 @@ while(1){
     printf("IP address is: %s\n", inet_ntoa(clientadd.sin_addr));
     printf("port is: %d\n", (int) ntohs(clientadd.sin_port));
 
+
+start:
 while(1){
     memset(buffer,'\0',BUFFLEN);
-    if (recv(clientSocketfd,buffer,BUFFLEN,0)<0){  
+    int ret= read(clientSocketfd,buffer,BUFFLEN);
+    if (ret <0){  
         perror("Rcv error");
         exit(1);
+    }
+    else if (ret ==0){
+        printf("Client disconnect\n");
+        close(clientSocketfd);
+        goto begin;
     }
     if (strcmp(buffer,"A")==0){
         memset(buffer,'\0',BUFFLEN);
@@ -215,7 +222,6 @@ while(1){
     memset(path_buffer,'\0',sizeof(path_buffer));
     strcpy(path_buffer,path);
     strcpy(path_buffer+len,buffer);
-    char* siz = malloc(10*sizeof(char));
     if (checkfile(path_buffer)==0){
         printf("File dont exist");
         memset(buffer,'\0',BUFFLEN);
@@ -224,6 +230,7 @@ while(1){
             perror("Send error");
             break;
         }
+        goto start;
     }
     
     else {
@@ -238,16 +245,10 @@ while(1){
             perror("Send error1");
             exit(1);
         }
-
         if (sz < BUFFLEN){
-            memset(buffer,'\0',BUFFLEN);
-            if (recv(clientSocketfd,buffer,BUFFLEN,0)==0){
-            memset(buffer,'\0',BUFFLEN);
-            printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
-            close(clientSocketfd);
-            close(op);
-            break;
-        }}
+        printf("Transmit: %ld\n",ti*BUFFLEN+sz);
+        goto start;
+        }
         else 
         {
             ti++;
@@ -256,7 +257,8 @@ while(1){
         }
     }  
 }
-free(siz);
+
+
 // break;
 }
 free(buffer);
