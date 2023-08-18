@@ -216,7 +216,7 @@ while(1){
     }
     else break;}
     printf("File client want: %s\n",buffer);
-    char* path = "C:/cygwin64/home/MSI/storage/";
+    char* path = "/home/phuongnam/transmit/";
     size_t len = strlen(path);
     char* path_buffer = malloc(len+strlen(buffer));
     memset(path_buffer,'\0',sizeof(path_buffer));
