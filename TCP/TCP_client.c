@@ -185,7 +185,7 @@ int main(int argc, char **argv){
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
-            printf("%s\n",buffer);
+            // printf("%s\n",buffer);
             writen(op,buffer,ret);
             if (ret==BUFFLEN){
             t++;
@@ -193,8 +193,13 @@ int main(int argc, char **argv){
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
-            if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
+            int ret = recv(socketfd,buffer,BUFFLEN,0);
+            if (ret<0){
                 perror("Recv error");
+                exit(1);
+            }
+            else if (ret == 0){
+                printf("Client disconnected");
                 exit(1);
             }
             }
