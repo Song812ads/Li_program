@@ -189,11 +189,10 @@ int main(int argc, char **argv){
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
-            // printf("%s\n",buffer);
+            printf("%s\n",buffer);
             writen(op,buffer,ret);
             if (ret==BUFFLEN){
             t++;
-            printf("%d\n",t);
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
@@ -203,7 +202,7 @@ int main(int argc, char **argv){
                 exit(1);
             }
             else if (ret == 0){
-                printf("Client disconnected");
+                printf("Server disconnected");
                 exit(1);
             }
             }
