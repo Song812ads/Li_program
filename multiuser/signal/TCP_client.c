@@ -70,7 +70,7 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
   return (n);
 }
 
-
+ssize_t t = 0;
 void signio_handler(int signo){
     char buffer[BUFFLEN];
     int ret = recv(socketfd, buffer, BUFFLEN, 0);
@@ -84,23 +84,16 @@ void signio_handler(int signo){
             printf("File not exist\n");
         }
         else  {
-            ssize_t t = 0;
-            long sz = 0;
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
-            lseek(op,0,SEEK_SET);
+            lseek(op,t*BUFFLEN,SEEK_SET);
         while (1){
             writen(op,buffer,ret);
             if (ret==BUFFLEN){
             t++;
-            sz = 0;
-            lseek(op,t*BUFFLEN,SEEK_SET);
-            memset(buffer,'\0',BUFFLEN);
-            if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
-                perror("Recv error");
-                exit(1);
-            }
+            close(op);
             }
             else {
+            t = 0;
             close(op);
             // close(socketfd);
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
