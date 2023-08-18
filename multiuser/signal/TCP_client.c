@@ -13,6 +13,9 @@
 typedef enum {FIRST, AFTER} file_mode;
 char* filename=NULL;
 int socketfd;
+
+
+
 void pipebroke()
 {
     printf("\nBroken pipe: write to pipe with no readers\n");
@@ -67,7 +70,16 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
   return (n);
 }
 
+
 void signio_handler(int signo){
+    size_t len_file = 0;
+    ssize_t rdn;
+    struct flock lock;
+    lock.l_type = F_WRLCK;
+    lock.l_whence = SEEK_SET; 
+    lock.l_start = 0;        
+    lock.l_len = 0;          
+    lock.l_pid = getpid();
     char buffer[BUFFLEN];
     int ret = recv(socketfd, buffer, BUFFLEN, 0);
     if (ret == 0) {
@@ -80,6 +92,7 @@ void signio_handler(int signo){
     }
     else {
     if (strcmp(buffer,"Err")==0){
+            while (fcntl(1,F_GETLK,&lock) == F_UNLCK){;}
             printf("File not exist\n");
         }
         else  {
@@ -169,7 +182,15 @@ int main(int argc, char **argv){
     while(1){
         size_t len_file = 0;
         ssize_t rdn;
+        struct flock lock;
+        lock.l_type = F_WRLCK;
+        lock.l_whence = SEEK_SET; 
+        lock.l_start = 0;        
+        lock.l_len = 0;          
+        lock.l_pid = getpid();
     while(1){
+        int re = fcntl(1, F_GETLK,&lock);
+        while (lock.l_type == F_UNLCK) {;}
         printf("Nhap file muon tai: ");
         if ((rdn = getline(&filename,&len_file,stdin))==-1){
             perror("Getline error");
