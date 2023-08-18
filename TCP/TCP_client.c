@@ -184,7 +184,7 @@ int main(int argc, char **argv){
             if (strcmp(buffer,"OK")!=0){
             writen(op,buffer,ret);
             close(op);
-            printf("Size from client: %ld\n",t);
+            printf("Size from client: %ld\n",t+ret);
             break;
             }
             else{
