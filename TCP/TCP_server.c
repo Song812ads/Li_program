@@ -248,20 +248,17 @@ while(1){
         }
         if (sz < BUFFLEN){
         printf("Transmit: %ld\n",ti*BUFFLEN+sz);
-        memset(buffer,'\0',BUFFLEN);
-        ssize_t ret = recv(clientSocketfd,buffer,BUFFLEN,0);
-        if (ret<0){
-            perror("Recv fail");
-            exit(1);
-        }
-        else if (ret == 0){
-            printf("Client disconnect");
-            exit(1);
-        }
         goto start;
         }
         else 
         {
+            memset(buffer,"\0",BUFFLEN);
+            strcpy(buffer,"OK");
+            if (send(clientSocketfd,buffer,strlen(buffer),0)<0){
+                perror("Send err");
+                exit(1);
+            }
+
             ti++;
             sz = 0;
             lseek(op,ti*BUFFLEN,SEEK_SET);

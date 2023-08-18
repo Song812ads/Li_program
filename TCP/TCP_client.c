@@ -182,7 +182,7 @@ int main(int argc, char **argv){
             lseek(op,0,SEEK_SET);
         while (1){
             writen(op,buffer,ret);
-            if (ret==BUFFLEN){
+            if (strcmp(buffer,"OK")!=0){
             t++;
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
