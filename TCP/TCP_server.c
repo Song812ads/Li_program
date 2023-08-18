@@ -126,7 +126,7 @@ int main(int argc, char **argv){
     // Thiêt lập port và các phương thức cơ bản giao tiếp TCP/IP
     int serverSocketfd, clientSocketfd, valread;
     struct sockaddr_in serveradd, clientadd;
-    char *buffer = (char* )malloc((BUFFLEN+1) * sizeof(char));
+    unsigned char *buffer = (unsigned char* )malloc((BUFFLEN) * sizeof(unsigned char));
     int clientlength = sizeof(clientadd);
     struct timeval tv;
     // tv.tv_sec = 5;

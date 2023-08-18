@@ -214,8 +214,9 @@ int main(int argc, char **argv){
         }
         else break;
     }
-        int ret = recv(socketfd,buffer,BUFFLEN,0);
+        
         memset(buffer,'\0',BUFFLEN);
+        int ret = recv(socketfd,buffer,BUFFLEN,0);
         if (ret <0){
             perror("Recv error");
             exit(1);
@@ -235,14 +236,13 @@ int main(int argc, char **argv){
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
-            printf("%s\n",buffer);
             writen(op,buffer,ret);
             if (ret==BUFFLEN){
             t ++;
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
-            int ret = read(socketfd,buffer,BUFFLEN);
+            int ret = recv(socketfd,buffer,BUFFLEN,0);
             if (ret<0){
                 perror("Recv error");
                 exit(1);
