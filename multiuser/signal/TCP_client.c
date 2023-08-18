@@ -11,7 +11,7 @@
 #include <signal.h>
 #define BUFFLEN 1000
 typedef enum {FIRST, AFTER} file_mode;
-char* filename=NULL;
+char* filename= NULL;
 int socketfd;
 
 struct flock lock;
@@ -198,6 +198,7 @@ int main(int argc, char **argv){
         size_t len_file = 0;
         ssize_t rdn;
     while(1){
+        char* filename1 = (char*)malloc(20*sizeof(char));
         int re = fcntl(1, F_SETLK,&lock);
         while (lock.l_type != F_UNLCK){;}
         lock.l_type = F_WRLCK;
@@ -205,15 +206,17 @@ int main(int argc, char **argv){
         printf("Nhap file muon tai: ");
         lock.l_type = F_UNLCK;
         fcntl(1,F_SETLK,&lock);
-        if ((rdn = getline(&filename,&len_file,stdin))==-1){
+        if ((rdn = getline(&filename1,&len_file,stdin))==-1){
             perror("Getline error");
             break;
         }
-        filename[strlen(filename)-1] = '\0';
+        filename1[strlen(filename1)-1] = '\0';
         if (strcmp(filename,"Q")==0){
             close(socketfd);
             exit(1);
         }
+        filename = filename1;
+        // free(filename1);
         memset(buffer,'\0',BUFFLEN);
         strcpy(buffer,filename);
         if (send(socketfd,buffer,BUFFLEN,0)<0){
