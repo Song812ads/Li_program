@@ -191,8 +191,8 @@ int main(int argc, char **argv){
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
-            
-            if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
+            ret = recv(socketfd,buffer,BUFFLEN,0);
+            if (ret < 0){
                 perror("Recv error/Client disconnected");
                 exit(1);
             }
