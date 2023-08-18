@@ -12,7 +12,7 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#define BUFFLEN 1000
+#define BUFFLEN 500
 #define check(expr) if (!(expr)) { perror(#expr); kill(0, SIGTERM); }
 
 void pipebroke()

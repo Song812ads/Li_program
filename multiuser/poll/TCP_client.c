@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
-#define BUFFLEN 1000
+#define BUFFLEN 500
 typedef enum {FIRST, AFTER} file_mode;
 
 void pipebroke()
@@ -191,14 +191,14 @@ int main(int argc, char **argv){
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
+            
             if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
-                perror("Recv error");
+                perror("Recv error/Client disconnected");
                 exit(1);
             }
             }
             else {
             close(op);
-            // close(socketfd);
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
             break;
             }

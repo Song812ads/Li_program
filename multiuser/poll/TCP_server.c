@@ -15,7 +15,7 @@
 #include <dirent.h>
 #include <poll.h>
 
-#define BUFFLEN 1000
+#define BUFFLEN 500
 #define MAX_CLIENTS 2
 
 void pipebroke()
@@ -225,7 +225,7 @@ while (1){
                         while (1){
                         memset(buffer,'\0',BUFFLEN);
                         sz = readn(op,buffer,BUFFLEN);
-                        printf("%d\n",sz);
+                        // printf("%d\n",sz);
                         if (send(sd,buffer,sz,0)<0){
                             perror("Send error2");
                             exit(1);
