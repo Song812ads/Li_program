@@ -160,7 +160,7 @@ void handle(int socket, struct sockaddr_in clientadd, unsigned int  clientlength
     int sd = socket;
     char buffer[BUFFLEN];
     int ret;
-start:
+start: 
 while (1){
     memset(buffer,'\0',BUFFLEN);
     ret= read(sd,buffer,BUFFLEN);
@@ -216,6 +216,7 @@ while (1){
                 printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
                 close(op);
                 goto start;
+                break;
             }
             else 
             {

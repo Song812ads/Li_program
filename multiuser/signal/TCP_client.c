@@ -11,7 +11,8 @@
 #include <signal.h>
 #define BUFFLEN 1000
 typedef enum {FIRST, AFTER} file_mode;
-
+char* filename=NULL;
+int socketfd;
 void pipebroke()
 {
     printf("\nBroken pipe: write to pipe with no readers\n");
@@ -66,32 +67,52 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
   return (n);
 }
 
-void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
-    int fp = open(file, O_RDWR | O_APPEND | O_CREAT | O_SYNC, 0644);
-    if (fp == -1){
-        perror("Error writing file\n");
+void signio_handler(int signo){
+    char buffer[BUFFLEN];
+    int ret = recv(socketfd, buffer, BUFFLEN, 0);
+    if (ret == 0) {
+        printf("Client disconnect\n");
         exit(1);
     }
-    off_t offset = 0;
-    for (int i=0; i < size; i++){
-        ssize_t readnow = pwrite(fp, buffer + offset, 1,t*BUFFLEN + offset);
-        if (readnow < 0){
-            printf("Read unsuccessful \n");
-            free(buffer);
-            close(fp);
-            exit(1);
-        }
-        offset = offset+readnow;
+    else if (ret<0){
+        perror("Recv error");
+        exit(1);
     }
-    close(fp);
-    printf("File write complete part %d \n",t+1);
-}
+    else {
+    if (strcmp(buffer,"Err")==0){
+            printf("File not exist\n");
+        }
+        else  {
+            ssize_t t = 0;
+            long sz = 0;
+            int op = open(filename, O_RDWR | O_CREAT , 0644); 
+            lseek(op,0,SEEK_SET);
+        while (1){
+            writen(op,buffer,ret);
+            if (ret==BUFFLEN){
+            t++;
+            sz = 0;
+            lseek(op,t*BUFFLEN,SEEK_SET);
+            memset(buffer,'\0',BUFFLEN);
+            if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
+                perror("Recv error");
+                exit(1);
+            }
+            }
+            else {
+            close(op);
+            // close(socketfd);
+            printf("Size from client: %ld\n",t*BUFFLEN+ret);
+            break;
+            }
+        }}
+}}
+
 
 int main(int argc, char **argv){
     // Thiết lập phương thức nhận dữ liêu và tạo kết nối đến server
     signal(SIGPIPE,pipebroke);
     signal(SIGINT,exithandler);
-    int socketfd; 
     struct sockaddr_in serveradd;
     unsigned char *buffer = (unsigned char* )malloc((BUFFLEN+1) * sizeof(unsigned char));
     
@@ -136,8 +157,16 @@ int main(int argc, char **argv){
         if( setsockopt (socketfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0 )
         printf( "setsockopt fail\n" );
 
+
+    if(fcntl(socketfd, F_SETFL, O_NONBLOCK|O_ASYNC))
+        printf("Error in setting socket to async, nonblock mode");  
+    
+    signal(SIGIO, signio_handler); // assign SIGIO to the handler
+
+    if (fcntl(socketfd, F_SETOWN, getpid()) <0)
+        printf("Error in setting own to socket");
+
     while(1){
-        char* filename=NULL;
         size_t len_file = 0;
         ssize_t rdn;
     while(1){
@@ -147,7 +176,10 @@ int main(int argc, char **argv){
             break;
         }
         filename[strlen(filename)-1] = '\0';
-        
+        if (strcmp(filename,"Q")==0){
+            close(socketfd);
+            exit(1);
+        }
         memset(buffer,'\0',BUFFLEN);
         strcpy(buffer,filename);
         if (send(socketfd,buffer,BUFFLEN,0)<0){
@@ -165,46 +197,12 @@ int main(int argc, char **argv){
         }
         else break;
     }
-        int ret = 0;
-        memset(buffer,'\0',BUFFLEN);
-        if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
-            perror("Recv error");
-            exit(1);
-            // if (a==0) exit(1);
-        }
+
         //  printf("%s\n",buffer);
-        if (strcmp(buffer,"Err")==0){
-            printf("File not exist");
-            break;
-        }
-        else  {
-            ssize_t t = 0;
-            long sz = 0;
-            int op = open(filename, O_RDWR | O_CREAT , 0644); 
-            lseek(op,0,SEEK_SET);
-        while (1){
-            writen(op,buffer,ret);
-            if (ret==BUFFLEN){
-            t++;
-            sz = 0;
-            lseek(op,t*BUFFLEN,SEEK_SET);
-            memset(buffer,'\0',BUFFLEN);
-            if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
-                perror("Recv error");
-                exit(1);
-            }
-            }
-            else {
-            close(op);
-            close(socketfd);
-            printf("Size from client: %ld\n",t*BUFFLEN+ret);
-            break;
-            }
-        }
+        
         
         }
-        break;
-        }
+        // break;
 
     free(buffer);
     return 0;

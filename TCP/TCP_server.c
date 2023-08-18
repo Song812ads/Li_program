@@ -126,11 +126,7 @@ int main(int argc, char **argv){
     char buffer[BUFFLEN];
     int clientlength = sizeof(clientadd);
     struct timeval tv;
-    // tv.tv_sec = 5;
-    // tv.tv_usec = 0;
 
-
-    // Socket create:
     if ((serverSocketfd = socket(AF_INET, SOCK_STREAM,0))<0){
         perror("Socket create fail");
         exit(1);
@@ -144,13 +140,6 @@ int main(int argc, char **argv){
     serveradd.sin_port = htons ( 6185 );
     serveradd.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    // int optval = 1;
-    // socklen_t optlen = sizeof(optval);
-    // if(setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEADDR, &optval, optlen) < 0) {
-    //   perror("setsockopt()");
-    //   close(clientSocketfd);
-    //   exit(EXIT_FAILURE);
-    // }
     const int enable = 1;
 if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
     error("setsockopt(SO_REUSEADDR) failed");

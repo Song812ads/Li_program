@@ -300,10 +300,8 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                         }
                     }  
                 }
-                close(events[i].data.fd);
-                epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd,&event);
-                break;
                 }
+            break;
             }
         }
             }}}}

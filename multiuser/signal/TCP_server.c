@@ -13,9 +13,6 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <dirent.h>
-#include <poll.h>
-#include <sys/epoll.h>
-
 #define BUFFLEN 1000
 #define MAX_CLIENTS 2
 
@@ -90,15 +87,12 @@ void checkfolder(unsigned char* buffer){
 
 int checkfile(unsigned char* buffer){
     if (access(buffer, F_OK) == -1){
-        printf("File don't exist\n");
         return 0;
     }
     else if (access(buffer,R_OK) == -1){
-        printf("Cant read file\n");
         return 0;
     }
     else {
-        printf("File prepare to read\n");
         return 1;
     }
 }
@@ -115,9 +109,12 @@ int main(int argc, char **argv){
     char *buffer = (char* )malloc(BUFFLEN * sizeof(char));
     int clientlength = sizeof(clientadd);
     struct timeval tv;
-    tv.tv_sec = 20;
+    tv.tv_sec = 200;
     tv.tv_usec = 0;
 
+    for (int i=0;i < MAX_CLIENTS;i++){
+        clientSocketfd[i] = 0;
+    }
     // Socket create:
     if ((serverSocketfd = socket(AF_INET, SOCK_STREAM,0))<0){
         perror("Socket create fail");
@@ -126,26 +123,15 @@ int main(int argc, char **argv){
 
     else printf("Socket: %d \n",serverSocketfd);
 
-    int flags = fcntl(serverSocketfd, F_GETFL, 0);
-    if (flags == -1) {
-        perror("fcntl()");
-        exit(1);
-    }
-        if (fcntl(serverSocketfd, F_SETFL, flags | O_NONBLOCK) == -1) {
-        perror("fcntl()");
-        exit(1);
-    }
-    
 
     bzero (&serveradd, sizeof(serveradd));
     serveradd.sin_family = AF_INET;
     serveradd.sin_port = htons ( 6315 );
     serveradd.sin_addr.s_addr = htonl(INADDR_ANY);
-    const int enable = 1;
+
+   const int enable = 1;
 if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
-    error("setsockopt(SO_REUSEADDR) failed");
-if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0)
-    error("setsockopt(SO_REUSEADDR) failed");
+    perror("setsockopt(SO_REUSEADDR) failed");
 
     if (bind (serverSocketfd, (struct sockaddr*) &serveradd, sizeof( serveradd))!=0){
         perror("Server bind fail");
@@ -162,86 +148,69 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
     else printf("Listening...\n");
     bzero(&clientadd,sizeof(clientadd));
 
-    int epoll_fd  = epoll_create1(0);
-    if (epoll_fd == -1){
-        perror("Epoll create fail");
-        exit(1);
-    }
-    struct epoll_event event;
-    memset(&event, 0, sizeof(event));
-    event.data.fd = serverSocketfd;
-    event.events = EPOLLIN | EPOLLET;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, serverSocketfd, &event) == -1) {
-        perror("epoll_ctl error");
-        exit(1);
-    }
-    struct epoll_event *events = calloc(MAX_CLIENTS, sizeof(event));
+    FD_ZERO(&readfds);
+while (1){
+    FD_SET(serverSocketfd,&readfds);
 
-    while (1){
-        int nevents = epoll_wait(epoll_fd, events, MAX_CLIENTS, 20);
-            if (nevents == -1) {
-            perror("epoll_wait error");
-            exit(1);
-            }
-        for (int i = 0; i<nevents; i++){
-        if ((events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP) ||
-            (!(events[i].events & EPOLLIN))) {
-                perror("Something wrong. Ckient disconnected\n");
-                close(events[i].data.fd);
-                epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd,&event);
-            }
-        else if (events[i].data.fd == serverSocketfd){
-            while (1){
-                int client_socket = accept(serverSocketfd,(struct sockaddr*)&clientadd, &clientlength);
-                if (client_socket == -1){
-                    if (errno  == EAGAIN || errno == EWOULDBLOCK){
-                        break;
-                    }
-                    else {
-                        perror("Accepted fail");
-                        exit(1);
-                    }
-                }
-                else {
-                    printf("New connection ,ip is : %s , port : %d \n" , inet_ntoa(clientadd.sin_addr), ntohs(clientadd.sin_port));
-                    int flags = fcntl(client_socket, F_GETFL, 0);
-                    if (flags == -1) {
-                        perror("fcntl()");
-                        exit(1);
-                    }
-                        if (fcntl(client_socket, F_SETFL, flags | O_NONBLOCK) == -1) {
-                        perror("fcntl()");
-                        exit(1);
-                    }
+    int max_sd = serverSocketfd;
 
-                    event.data.fd = client_socket;
-                    event.events = EPOLLIN | EPOLLET ;
-                    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_socket, &event) == -1) {
-                        perror("epoll_ctl()");
-                        exit(1);
-                    }
-                    
+    for (int i =0; i<MAX_CLIENTS; i++){
+        sd = clientSocketfd[i];
+        if (sd>0){
+            FD_SET(sd, &readfds);
+        }
+        if (sd > max_sd){
+            max_sd = sd;
+        }
+    }
+
+    int activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);
+    if ((activity < 0) && (errno!=EINTR)) 
+    {
+        printf("select error");
+    }
+
+    if (FD_ISSET(serverSocketfd, &readfds)) 
+        {
+            if (( new_socket = accept(serverSocketfd, (struct sockaddr *)&clientadd, &clientlength))<0)
+            {
+                perror("accept");
+                exit(1);
+            }
+            printf("New connection ,ip is : %s , port : %d \n"  , inet_ntoa(clientadd.sin_addr) 
+            , ntohs(clientadd.sin_port));
+              
+            //add new socket to array of sockets
+            for (int i = 0; i < MAX_CLIENTS; i++) 
+            {
+                //if position is empty
+                if( clientSocketfd[i] == 0 )
+                {
+                    clientSocketfd[i] = new_socket;
+
+                    printf("Adding to list of sockets as %d\n" , i+1);
+                    break;
                 }
             }
         }
-        else {
-            while(1){
-                int ret = recv(events[i].data.fd,buffer,BUFFLEN,0);
-                if (ret <0){
-                    if (errno == EAGAIN || errno == EWOULDBLOCK){
-                        break;
-                    }
-                    else{
-                        perror("Read fail");
-                        exit(1);
-                }}
-                else if (ret == 0){
-                    printf("Client disconnected\n");
-                    close(events[i].data.fd);
-                    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd,&event);
+    else {
+        for (int i =0; i<MAX_CLIENTS; i++){
+            sd = clientSocketfd[i];
+            if (FD_ISSET(sd,&readfds)){
+                memset(buffer,'\0',BUFFLEN);
+                valread = read(sd,buffer,BUFFLEN);
+                if (valread==0){
+                    getpeername(sd , (struct sockaddr*)&clientadd , (socklen_t*)&clientlength);
+                    printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(clientadd.sin_addr) , ntohs(clientadd.sin_port));
+                    close(sd);
+                    clientSocketfd[i] = 0;
                     break;
                 }
-                else {
+                else if (valread < 0){
+                    perror("Read error");
+                    exit(1);
+                }
+                else{
                     if (strcmp(buffer,"A")==0){
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,"File");
@@ -251,7 +220,6 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                         }
                     }
                     else {
-                    int sd = events[i].data.fd;
                     printf("File client want: %s\n",buffer);
                     char* path = "/home/phuongnam/transmit/";
                     size_t len = strlen(path);
@@ -261,10 +229,10 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                     strcpy(path_buffer+len,buffer);
                     int sz = 0, ti = 0;
                     if (checkfile(path_buffer)==0){
-                        printf("File dont exist");
+                        printf("File dont exist\n");
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,"Err");
-                        if (send(sd,buffer,strlen(buffer),0)<0){
+                        if (send(sd,buffer,BUFFLEN,0)<0){
                             perror("Send error");
                             break;
                         }
@@ -276,30 +244,27 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                         while (1){
                         memset(buffer,'\0',BUFFLEN);
                         sz = readn(op,buffer,BUFFLEN);
-                        printf("%d\n",sz);
                         if (send(sd,buffer,sz,0)<0){
                             perror("Send error2");
                             exit(1);
                         }
-
                         if (sz < BUFFLEN){
-                            memset(buffer,'\0',BUFFLEN);
-                            if (recv(sd,buffer,BUFFLEN,0)==0){
-                            printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
+                            printf("Transmit: %ld\n",ti*BUFFLEN+sz);
                             close(op);
                             break;
-                        }}
+                        }
                         else 
                         {
                             ti++;
                             sz = 0;
                             lseek(op,ti*BUFFLEN,SEEK_SET);
+                            sleep(1);
                         }
                     }  
                 }
-                close(sd);
-                epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd,&event);
-                }
-            }
-        }
-            }}}}
+        }}
+        break;
+        }}}}
+    free(buffer);
+    close(serverSocketfd);
+}
