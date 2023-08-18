@@ -118,7 +118,12 @@ void signio_handler(int signo){
             else {
             close(op);
             // close(socketfd);
+            while (lock.l_type != F_UNLCK){;}
+            lock.l_type = F_WRLCK;
+            fcntl(1,F_SETLK,&lock);
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
+            lock.l_type = F_UNLCK;
+            fcntl(1,F_SETLK,&lock);
             break;
             }
         }}
@@ -221,7 +226,12 @@ int main(int argc, char **argv){
                 perror("Recv error");
                 exit(1);
             }
+            while (lock.l_type != F_UNLCK){;}
+            lock.l_type = F_WRLCK;
+            fcntl(1,F_SETLK,&lock);
             printf("File available: %s\n",buffer);
+            lock.l_type = F_UNLCK;
+            fcntl(1,F_SETLK,&lock);
         }
         else break;
     }
