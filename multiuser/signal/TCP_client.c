@@ -92,9 +92,9 @@ void signio_handler(int signo){
             close(op);
             }
             else {
+            printf("Size from client: %ld\n",t*BUFFLEN+ret);
             t = 0;
             close(op);
-            printf("Size from client: %ld\n",t*BUFFLEN+ret);
             }
         }}
 }
