@@ -11,10 +11,9 @@
 #include <signal.h>
 #define BUFFLEN 1000
 typedef enum {FIRST, AFTER} file_mode;
-char* filename= NULL;
+char* filename=NULL;
 int socketfd;
 
-struct flock lock;
 
 
 void pipebroke()
@@ -73,12 +72,6 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
 
 
 void signio_handler(int signo){
-    size_t len_file = 0;
-    ssize_t rdn;
-    lock.l_whence = SEEK_SET; 
-    lock.l_start = 0;        
-    lock.l_len = 0;          
-    lock.l_pid = getpid();
     char buffer[BUFFLEN];
     int ret = recv(socketfd, buffer, BUFFLEN, 0);
     if (ret == 0) {
@@ -92,12 +85,11 @@ void signio_handler(int signo){
     else {
     if (strcmp(buffer,"Err")==0){
             printf("File not exist\n");
-
         }
         else  {
             ssize_t t = 0;
             long sz = 0;
-            printf("%s\n ",filename);
+            printf("%s\n", filename);
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
@@ -115,9 +107,7 @@ void signio_handler(int signo){
             else {
             close(op);
             // close(socketfd);
-
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
-
             break;
             }
         }}
@@ -184,8 +174,8 @@ int main(int argc, char **argv){
     while(1){
         size_t len_file = 0;
         ssize_t rdn;
+        char *filename1 =  (char*)malloc(20*sizeof(char));
     while(1){
-        char* filename1 = (char*)malloc(20*sizeof(char));
         printf("Nhap file muon tai: ");
         if ((rdn = getline(&filename1,&len_file,stdin))==-1){
             perror("Getline error");
@@ -197,8 +187,6 @@ int main(int argc, char **argv){
             close(socketfd);
             exit(1);
         }
-        
-        // free(filename1);
         memset(buffer,'\0',BUFFLEN);
         strcpy(buffer,filename);
         if (send(socketfd,buffer,BUFFLEN,0)<0){
@@ -212,9 +200,7 @@ int main(int argc, char **argv){
                 perror("Recv error");
                 exit(1);
             }
-
             printf("File available: %s\n",buffer);
-
         }
         else break;
     }
