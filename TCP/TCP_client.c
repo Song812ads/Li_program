@@ -168,12 +168,16 @@ int main(int argc, char **argv){
         }
         else break;
     }
-        int ret = 0;
+        int ret = recv(socketfd,buffer,BUFFLEN,0);
         memset(buffer,'\0',BUFFLEN);
-        if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
+        if (ret <0){
             perror("Recv error");
             exit(1);
             // if (a==0) exit(1);
+        }
+        else if (ret == 0){
+            printf("Server disconnected ");
+            exit(1);
         }
         //  printf("%s\n",buffer);
         if (strcmp(buffer,"Err")==0){
