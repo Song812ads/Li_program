@@ -101,6 +101,7 @@ void signio_handler(int signo){
         else  {
             ssize_t t = 0;
             long sz = 0;
+            printf("%s\n ",filename);
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
