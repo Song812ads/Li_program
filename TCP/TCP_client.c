@@ -23,52 +23,6 @@ void exithandler()
     exit(EXIT_FAILURE);
 }
 
-ssize_t
-readLine(int fd, void *buffer, size_t n)
-{
-    ssize_t numRead;                    /* # of bytes fetched by last read() */
-    size_t totRead;                     /* Total bytes read so far */
-    char *buf;
-    char ch;
-
-    if (n <= 0 || buffer == NULL) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    buf = buffer;                       /* No pointer arithmetic on "void *" */
-
-    totRead = 0;
-    for (;;) {
-        numRead = read(fd, &ch, 1);
-
-        if (numRead == -1) {
-            if (errno == EINTR)         /* Interrupted --> restart read() */
-                continue;
-            else
-                return -1;              /* Some other error */
-
-        } else if (numRead == 0) {      /* EOF */
-            if (totRead == 0)           /* No bytes read; return 0 */
-                return 0;
-            else                        /* Some bytes read; add '\0' */
-                break;
-
-        } else {                        /* 'numRead' must be 1 if we get here */
-            if (totRead < n - 1) {      /* Discard > (n - 1) bytes */
-                totRead++;
-                *buf++ = ch;
-            }
-
-            if (ch == '\n')
-                break;
-        }
-    }
-
-    *buf = '\0';
-    return totRead;
-}
-
 ssize_t  readn(int fd, void *vptr, size_t n)
 {    size_t  nleft;
     ssize_t nread;
@@ -139,7 +93,7 @@ int main(int argc, char **argv){
     signal(SIGINT,exithandler);
     int socketfd; 
     struct sockaddr_in serveradd;
-    unsigned char* buffer = (unsigned char*)malloc(BUFFLEN*sizeof(unsigned char));
+    unsigned char *buffer = (unsigned char* )malloc((BUFFLEN+1) * sizeof(unsigned char));
     
     if (argc!=4){
         printf("Wrong type <server addresss> <server port>\n");
@@ -176,11 +130,11 @@ int main(int argc, char **argv){
       close(socketfd);
       exit(EXIT_FAILURE);
     }
-    // struct timeval tv;
-    // tv.tv_sec = 20;
-    // tv.tv_usec = 0;
-    //     if( setsockopt (socketfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0 )
-    //     printf( "setsockopt fail\n" );
+    struct timeval tv;
+    tv.tv_sec = 20;
+    tv.tv_usec = 0;
+        if( setsockopt (socketfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0 )
+        printf( "setsockopt fail\n" );
 
     while(1){
         char* filename=NULL;
@@ -214,17 +168,12 @@ int main(int argc, char **argv){
         }
         else break;
     }
-        
+        int ret = 0;
         memset(buffer,'\0',BUFFLEN);
-        int ret = recv(socketfd,buffer,BUFFLEN,0);
-        if (ret <0){
+        if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
             perror("Recv error");
             exit(1);
             // if (a==0) exit(1);
-        }
-        else if (ret == 0){
-            printf("Server disconnected ");
-            exit(1);
         }
         //  printf("%s\n",buffer);
         if (strcmp(buffer,"Err")==0){
@@ -238,23 +187,18 @@ int main(int argc, char **argv){
         while (1){
             writen(op,buffer,ret);
             if (ret==BUFFLEN){
-            t ++;
+            t++;
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
-            int ret = recv(socketfd,buffer,BUFFLEN,0);
-            if (ret<0){
-                perror("Recv error");
+            
+            if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
+                perror("Recv error/Client disconnected");
                 exit(1);
             }
-            // else if (ret == 0){
-            //     printf("Server disconnected");
-            //     exit(1);
-            // }
             }
             else {
             close(op);
-            // close(socketfd);
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
             break;
             }
