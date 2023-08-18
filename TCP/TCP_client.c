@@ -169,7 +169,7 @@ int main(int argc, char **argv){
         else break;
     }
         int ret = 0;
-        memset(buffer,'\0',BUFFLEN);
+        memset(buffer,'\0',BUFFLEN+1);
         if ((ret = recv(socketfd,buffer,BUFFLEN+1,0))<0){
             perror("Recv error");
             exit(1);
@@ -190,7 +190,7 @@ int main(int argc, char **argv){
             t++;
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
-            memset(buffer,'\0',BUFFLEN);
+            memset(buffer,'\0',BUFFLEN+1);
             if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
                 perror("Recv error");
                 exit(1);
