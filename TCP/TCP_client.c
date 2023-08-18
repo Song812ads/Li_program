@@ -188,6 +188,7 @@ int main(int argc, char **argv){
             writen(op,buffer,ret);
             if (ret==BUFFLEN){
             t++;
+            printf('%d\n',t);
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
