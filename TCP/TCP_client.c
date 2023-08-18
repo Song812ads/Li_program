@@ -192,7 +192,7 @@ int main(int argc, char **argv){
                 perror("Recv error/Client disconnected");
                 exit(1);
             }
-            if (ret ==0){
+            else if (ret ==0){
                 printf("Server disconnected");
                 exit(1);
             }
