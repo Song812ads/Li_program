@@ -12,7 +12,7 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#define BUFFLEN 50
+#define BUFFLEN 500
 #define check(expr) if (!(expr)) { perror(#expr); kill(0, SIGTERM); }
 
 void pipebroke()
@@ -253,7 +253,10 @@ while(1){
             exit(1);
         }
         printf("Transmit: %ld\n",ti*BUFFLEN+sz);
-        goto begin;
+        if (read(clientSocketfd,buffer,BUFFLEN)==0){
+            printf("Bye");
+            exit(1);
+        }
         }
         else 
         {

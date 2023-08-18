@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
-#define BUFFLEN 50
+#define BUFFLEN 500
 typedef enum {FIRST, AFTER} file_mode;
 
 void pipebroke()
@@ -201,6 +201,7 @@ int main(int argc, char **argv){
             }
             else{
             close(op);
+            close(socketfd);
             printf("Size from client: %ld\n",t);
             break;
         }
