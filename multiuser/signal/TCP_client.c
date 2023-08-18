@@ -70,7 +70,7 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
   return (n);
 }
 
-ssize_t t = 0;
+static ssize_t t = 0;
 void signio_handler(int signo){
     char buffer[BUFFLEN];
     int ret = recv(socketfd, buffer, BUFFLEN, 0);
@@ -86,7 +86,6 @@ void signio_handler(int signo){
         else  {
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,t*BUFFLEN,SEEK_SET);
-        while (1){
             writen(op,buffer,ret);
             if (ret==BUFFLEN){
             t++;
@@ -95,12 +94,10 @@ void signio_handler(int signo){
             else {
             t = 0;
             close(op);
-            // close(socketfd);
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
-            break;
             }
         }}
-}}
+}
 
 
 int main(int argc, char **argv){
