@@ -196,7 +196,7 @@ int main(int argc, char **argv){
                 exit(1);
             }
             else {
-            printf("%ld\n",t);
+            printf("%ld\n",ret);
             }
             }
             else{
