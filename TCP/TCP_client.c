@@ -192,18 +192,14 @@ int main(int argc, char **argv){
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
             ret = recv(socketfd,buffer,BUFFLEN,0);
+            printf("%ld\n",ret);
             if (ret < 0){
                 perror("Recv error/Client disconnected");
                 exit(1);
             }
             }
             else {
-            memset(buffer,'\0',BUFFLEN);
-            strcpy(buffer,"OK");
-            if (send(socketfd,buffer,BUFFLEN,0)<0){
-                perror("Send error");
-                exit(1);
-            }
+            
             close(op);
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
             break;

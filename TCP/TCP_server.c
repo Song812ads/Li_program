@@ -240,16 +240,16 @@ while(1){
         while (1){
         memset(buffer,'\0',BUFFLEN);
         sz = readn(op,buffer,BUFFLEN);
-        printf("%s\n",buffer);
-
+        printf("%ld\n",sz);
+        
         if (send(clientSocketfd,buffer,sz,0)<0){
             perror("Send error1");
             exit(1);
         }
         if (sz < BUFFLEN){
-        
+        printf("Transmit: %ld\n",ti*BUFFLEN+sz);
         memset(buffer,'\0',BUFFLEN);
-        int ret = recv(clientSocketfd,buffer,BUFFLEN,0);
+        int ret = read(clientSocketfd,buffer,BUFFLEN);
         if (ret<0){
             perror("Recv fail");
             exit(1);
@@ -258,10 +258,8 @@ while(1){
             printf("Client disconnect");
             exit(1);
         }
-        else if (strcmp(buffer,"OK")==0){
-            printf("Transmit: %ld\n",ti*BUFFLEN+sz);
-            goto start;
-        }
+        goto start;
+        // exit(1);
         }
         else 
         {
