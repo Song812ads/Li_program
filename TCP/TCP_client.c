@@ -196,12 +196,11 @@ int main(int argc, char **argv){
                 exit(1);
             }
             else {
-            printf("%ld\n",ret);
+            printf("%ld\n",t);
             }
             }
             else{
             close(op);
-            close(socketfd);
             printf("Size from client: %ld\n",t);
             break;
         }

@@ -209,7 +209,7 @@ while(1){
     if (strcmp(buffer,"A")==0){
         memset(buffer,'\0',BUFFLEN);
         strcpy(buffer,"File");
-        if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
+        if (send(clientSocketfd,buffer,strlen(buffer),0)<0){
             perror("Send error");
             exit(1);
         }
@@ -226,7 +226,7 @@ while(1){
         printf("File dont exist");
         memset(buffer,'\0',BUFFLEN);
         strcpy(buffer,"Err");
-        if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
+        if (send(clientSocketfd,buffer,strlen(buffer),0)<0){
             perror("Send error");
             break;
         }
@@ -253,10 +253,7 @@ while(1){
             exit(1);
         }
         printf("Transmit: %ld\n",ti*BUFFLEN+sz);
-        if (read(clientSocketfd,buffer,BUFFLEN)==0){
-            printf("Bye");
-            exit(1);
-        }
+        goto begin;
         }
         else 
         {
