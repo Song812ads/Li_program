@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
-#define BUFFLEN 300
+#define BUFFLEN 50
 typedef enum {FIRST, AFTER} file_mode;
 
 void pipebroke()
