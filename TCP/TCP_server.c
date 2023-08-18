@@ -253,7 +253,7 @@ while(1){
             exit(1);
         }
         printf("Transmit: %ld\n",ti*BUFFLEN+sz);
-        goto start;
+        goto begin;
         }
         else 
         {
