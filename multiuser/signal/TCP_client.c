@@ -211,11 +211,12 @@ int main(int argc, char **argv){
             break;
         }
         filename1[strlen(filename1)-1] = '\0';
+        filename = filename1;
         if (strcmp(filename,"Q")==0){
             close(socketfd);
             exit(1);
         }
-        filename = filename1;
+        
         // free(filename1);
         memset(buffer,'\0',BUFFLEN);
         strcpy(buffer,filename);
