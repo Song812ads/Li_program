@@ -14,6 +14,7 @@ typedef enum {FIRST, AFTER} file_mode;
 char* filename=NULL;
 int socketfd;
 
+struct flock lock;
 
 
 void pipebroke()
@@ -74,8 +75,6 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
 void signio_handler(int signo){
     size_t len_file = 0;
     ssize_t rdn;
-    struct flock lock;
-    lock.l_type = F_WRLCK;
     lock.l_whence = SEEK_SET; 
     lock.l_start = 0;        
     lock.l_len = 0;          
@@ -92,8 +91,12 @@ void signio_handler(int signo){
     }
     else {
     if (strcmp(buffer,"Err")==0){
-            while (fcntl(1,F_GETLK,&lock) == F_UNLCK){;}
+            while (lock.l_type != F_UNLCK){;}
+            lock.l_type = F_WRLCK;
+            fcntl(1,F_SETLK,&lock);
             printf("File not exist\n");
+            lock.l_type = F_UNLCK;
+            fcntl(1,F_SETLK,&lock);
         }
         else  {
             ssize_t t = 0;
@@ -180,18 +183,22 @@ int main(int argc, char **argv){
         printf("Error in setting own to socket");
 
     while(1){
-        size_t len_file = 0;
-        ssize_t rdn;
-        struct flock lock;
-        lock.l_type = F_WRLCK;
+        lock.l_type = F_UNLCK;
         lock.l_whence = SEEK_SET; 
         lock.l_start = 0;        
         lock.l_len = 0;          
         lock.l_pid = getpid();
+        fcntl(1,F_SETLK,&lock);
+        size_t len_file = 0;
+        ssize_t rdn;
     while(1){
-        int re = fcntl(1, F_GETLK,&lock);
-        while (lock.l_type == F_UNLCK) {;}
+        int re = fcntl(1, F_SETLK,&lock);
+        while (lock.l_type != F_UNLCK){;}
+        lock.l_type = F_WRLCK;
+        fcntl(1,F_SETLK,&lock);
         printf("Nhap file muon tai: ");
+        lock.l_type = F_UNLCK;
+        fcntl(1,F_SETLK,&lock);
         if ((rdn = getline(&filename,&len_file,stdin))==-1){
             perror("Getline error");
             break;
