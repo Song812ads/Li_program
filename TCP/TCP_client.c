@@ -130,11 +130,7 @@ int main(int argc, char **argv){
       close(socketfd);
       exit(EXIT_FAILURE);
     }
-    struct timeval tv;
-    tv.tv_sec = 20;
-    tv.tv_usec = 0;
-        if( setsockopt (socketfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0 )
-        printf( "setsockopt fail\n" );
+ 
 
     while(1){
         char* filename=NULL;

@@ -241,7 +241,7 @@ while(1){
         memset(buffer,'\0',BUFFLEN);
         sz = readn(op,buffer,BUFFLEN);
         printf("%ld\n",sz);
-        
+
         if (send(clientSocketfd,buffer,sz,0)<0){
             perror("Send error1");
             exit(1);
@@ -249,7 +249,7 @@ while(1){
         if (sz < BUFFLEN){
         printf("Transmit: %ld\n",ti*BUFFLEN+sz);
         memset(buffer,'\0',BUFFLEN);
-        int ret = read(clientSocketfd,buffer,BUFFLEN);
+        ssize_t ret = recv(clientSocketfd,buffer,BUFFLEN,0);
         if (ret<0){
             perror("Recv fail");
             exit(1);
@@ -259,7 +259,6 @@ while(1){
             exit(1);
         }
         goto start;
-        // exit(1);
         }
         else 
         {
