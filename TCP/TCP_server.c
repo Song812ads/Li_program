@@ -240,6 +240,7 @@ while(1){
         while (1){
         memset(buffer,'\0',BUFFLEN);
         sz = readn(op,buffer,BUFFLEN);
+        printf("%s\n",buffer);
 
         if (send(clientSocketfd,buffer,sz,0)<0){
             perror("Send error1");
