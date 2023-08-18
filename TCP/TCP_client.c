@@ -183,11 +183,6 @@ int main(int argc, char **argv){
         while (1){
             if (strcmp(buffer,"OK")!=0){
             writen(op,buffer,ret);
-            close(op);
-            printf("Size from client: %ld\n",t+ret);
-            break;
-            }
-            else{
             t+=ret;
             lseek(op,t,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
@@ -202,11 +197,15 @@ int main(int argc, char **argv){
                 exit(1);
             }
             }
+            else{
+            close(op);
+            printf("Size from client: %ld\n",t);
+            break;
         }
         
         }
         // break;
-        }
+        }}
 
     free(buffer);
     return 0;
