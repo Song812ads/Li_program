@@ -257,6 +257,7 @@ while(1){
             ti++;
             sz = 0;
             lseek(op,ti*BUFFLEN,SEEK_SET);
+            sleep(0.2);
         }
     }  
 }

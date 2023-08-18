@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
-#define BUFFLEN 500
+#define BUFFLEN 1000
 typedef enum {FIRST, AFTER} file_mode;
 
 void pipebroke()
@@ -147,7 +147,10 @@ int main(int argc, char **argv){
             break;
         }
         filename[strlen(filename)-1] = '\0';
-        
+        if (strcmp(filename,"Q")==0){
+            close(socketfd);
+            exit(1);
+        }
         memset(buffer,'\0',BUFFLEN);
         strcpy(buffer,filename);
         if (send(socketfd,buffer,BUFFLEN,0)<0){
@@ -162,9 +165,6 @@ int main(int argc, char **argv){
                 exit(1);
             }
             printf("File available: %s\n",buffer);
-        }
-        else if (strcmp(filename,"Q")==0){
-            close(socketfd);
         }
         else break;
     }
@@ -191,14 +191,14 @@ int main(int argc, char **argv){
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
-            
             if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
-                perror("Recv error/Client disconnected");
+                perror("Recv error");
                 exit(1);
             }
             }
             else {
             close(op);
+            // close(socketfd);
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
             break;
             }
