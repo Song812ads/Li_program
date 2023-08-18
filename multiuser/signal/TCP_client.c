@@ -197,13 +197,7 @@ int main(int argc, char **argv){
         }
         else break;
     }
-
-        //  printf("%s\n",buffer);
-        
-        
-        }
-        // break;
-
+    }
     free(buffer);
     return 0;
 }
