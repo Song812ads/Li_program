@@ -181,8 +181,8 @@ int main(int argc, char **argv){
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
-            writen(op,buffer,ret);
             if (strcmp(buffer,"OK")!=0){
+            writen(op,buffer,ret);
             t++;
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
@@ -195,7 +195,6 @@ int main(int argc, char **argv){
             }
             }
             else {
-            
             close(op);
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
             break;

@@ -247,17 +247,17 @@ while(1){
             exit(1);
         }
         if (sz < BUFFLEN){
+        memset(buffer,"\0",BUFFLEN);
+        strcpy(buffer,"OK");
+        if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
+            perror("Send err");
+            exit(1);
+        }
         printf("Transmit: %ld\n",ti*BUFFLEN+sz);
         goto start;
         }
         else 
         {
-            memset(buffer,"\0",BUFFLEN);
-            strcpy(buffer,"OK");
-            if (send(clientSocketfd,buffer,strlen(buffer),0)<0){
-                perror("Send err");
-                exit(1);
-            }
 
             ti++;
             sz = 0;
