@@ -15,7 +15,7 @@
 #include <dirent.h>
 #include <poll.h>
 
-#define BUFFLEN 500
+#define BUFFLEN 1000
 #define MAX_CLIENTS 2
 
 void pipebroke()
@@ -174,6 +174,9 @@ while (1){
 
             if (pollfds[i].revents & POLLHUP){
                 printf("Client disconnected: %s\n", inet_ntoa(clientadd.sin_addr));
+                close(pollfds[i].fd);
+                pollfds[i].fd = 0;
+                break;
             }
 
             else if (pollfds[i].revents & POLLIN){
@@ -225,7 +228,7 @@ while (1){
                         while (1){
                         memset(buffer,'\0',BUFFLEN);
                         sz = readn(op,buffer,BUFFLEN);
-                        // printf("%d\n",sz);
+                        printf("%d\n",sz);
                         if (send(sd,buffer,sz,0)<0){
                             perror("Send error2");
                             exit(1);
@@ -241,11 +244,12 @@ while (1){
                             ti++;
                             sz = 0;
                             lseek(op,ti*BUFFLEN,SEEK_SET);
-                            sleep(1);
                         }
                     }  
-                }
-            }}}
+                } 
+            }}
+            break;
+            }
             else if (pollfds[i].revents & POLLERR){
                 perror("Poll");
             }}

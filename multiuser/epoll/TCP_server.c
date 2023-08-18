@@ -90,15 +90,12 @@ void checkfolder(unsigned char* buffer){
 
 int checkfile(unsigned char* buffer){
     if (access(buffer, F_OK) == -1){
-        printf("File don't exist\n");
         return 0;
     }
     else if (access(buffer,R_OK) == -1){
-        printf("Cant read file\n");
         return 0;
     }
     else {
-        printf("File prepare to read\n");
         return 1;
     }
 }
@@ -261,6 +258,7 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                     strcpy(path_buffer+len,buffer);
                     int sz = 0, ti = 0;
                     if (checkfile(path_buffer)==0){
+                        printf("File not exist \n");
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,"Err");
                         if (send(sd,buffer,BUFFLEN,0)<0){

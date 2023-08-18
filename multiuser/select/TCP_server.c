@@ -204,6 +204,7 @@ while (1){
                     printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(clientadd.sin_addr) , ntohs(clientadd.sin_port));
                     close(sd);
                     clientSocketfd[i] = 0;
+                    break;
                 }
                 else if (valread < 0){
                     perror("Read error");
@@ -257,11 +258,13 @@ while (1){
                             ti++;
                             sz = 0;
                             lseek(op,ti*BUFFLEN,SEEK_SET);
-                            sleep(1);
+                            sleep(0.2);
                         }
                     }  
                 }
-        }}}}}}
+        }}
+        break;
+        }}}}
     free(buffer);
     close(serverSocketfd);
 }
