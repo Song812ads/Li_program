@@ -91,15 +91,12 @@ long file_transfer(char* buffer, int t){
 
 int checkfile(unsigned char* buffer){
     if (access(buffer, F_OK) == -1){
-        printf("File don't exist\n");
         return 0;
     }
     else if (access(buffer,R_OK) == -1){
-        printf("Cant read file\n");
         return 0;
     }
     else {
-        printf("File prepare to read\n");
         return 1;
     }
 }
@@ -126,7 +123,7 @@ int main(int argc, char **argv){
     // Thiêt lập port và các phương thức cơ bản giao tiếp TCP/IP
     int serverSocketfd, clientSocketfd, valread;
     struct sockaddr_in serveradd, clientadd;
-    unsigned char *buffer = (unsigned char* )malloc((BUFFLEN) * sizeof(unsigned char));
+    char buffer[BUFFLEN];
     int clientlength = sizeof(clientadd);
     struct timeval tv;
     // tv.tv_sec = 5;
@@ -267,6 +264,6 @@ while(1){
 
 // break;
 }
-free(buffer);
+// free(buffer);
 close(serverSocketfd);
 }

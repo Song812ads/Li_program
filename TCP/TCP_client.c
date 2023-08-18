@@ -93,7 +93,7 @@ int main(int argc, char **argv){
     signal(SIGINT,exithandler);
     int socketfd; 
     struct sockaddr_in serveradd;
-    unsigned char *buffer = (unsigned char* )malloc((BUFFLEN+1) * sizeof(unsigned char));
+    char buffer[BUFFLEN];
     
     if (argc!=4){
         printf("Wrong type <server addresss> <server port>\n");
@@ -209,6 +209,6 @@ int main(int argc, char **argv){
         // break;
         }}
 
-    free(buffer);
+    // free(buffer);
     return 0;
 }
