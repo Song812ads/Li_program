@@ -247,7 +247,7 @@ while(1){
             exit(1);
         }
         if (sz < BUFFLEN){
-        memset(buffer,"\0",BUFFLEN);
+        memset(buffer,'\0',BUFFLEN);
         strcpy(buffer,"OK");
         if (send(clientSocketfd,buffer,BUFFLEN,0)<0){
             perror("Send err");
@@ -258,7 +258,6 @@ while(1){
         }
         else 
         {
-
             ti++;
             sz = 0;
             lseek(op,ti*BUFFLEN,SEEK_SET);

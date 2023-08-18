@@ -181,10 +181,10 @@ int main(int argc, char **argv){
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
+            printf("%s\n",buffer);
             if (strcmp(buffer,"OK")!=0){
             writen(op,buffer,ret);
             t++;
-            sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
             ret = recv(socketfd,buffer,BUFFLEN,0);
