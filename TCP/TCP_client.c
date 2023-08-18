@@ -93,7 +93,7 @@ int main(int argc, char **argv){
     signal(SIGINT,exithandler);
     int socketfd; 
     struct sockaddr_in serveradd;
-    unsigned char *buffer = (unsigned char* )malloc((BUFFLEN+1) * sizeof(unsigned char));
+    char buffer[BUFFLEN+1];
     
     if (argc!=4){
         printf("Wrong type <server addresss> <server port>\n");
@@ -170,7 +170,7 @@ int main(int argc, char **argv){
     }
         int ret = 0;
         memset(buffer,'\0',BUFFLEN);
-        if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
+        if ((ret = recv(socketfd,buffer,BUFFLEN+1,0))<0){
             perror("Recv error");
             exit(1);
             // if (a==0) exit(1);
