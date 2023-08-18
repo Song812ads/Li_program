@@ -247,8 +247,21 @@ while(1){
             exit(1);
         }
         if (sz < BUFFLEN){
-        printf("Transmit: %ld\n",ti*BUFFLEN+sz);
-        goto start;
+        
+        memset(buffer,'\0',BUFFLEN);
+        int ret = recv(clientSocketfd,buffer,BUFFLEN,0);
+        if (ret<0){
+            perror("Recv fail");
+            exit(1);
+        }
+        else if (ret == 0){
+            printf("Client disconnect");
+            exit(1);
+        }
+        else if (strcmp(buffer,"OK")==0){
+            printf("Transmit: %ld\n",ti*BUFFLEN+sz);
+            goto start;
+        }
         }
         else 
         {

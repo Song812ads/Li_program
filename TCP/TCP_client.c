@@ -198,6 +198,12 @@ int main(int argc, char **argv){
             }
             }
             else {
+            memset(buffer,'\0',BUFFLEN);
+            strcpy(buffer,"OK");
+            if (send(socketfd,buffer,BUFFLEN,0)<0){
+                perror("Send error");
+                exit(1);
+            }
             close(op);
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
             break;
