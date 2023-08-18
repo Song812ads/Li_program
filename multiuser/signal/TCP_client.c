@@ -74,15 +74,12 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
 void signio_handler(int signo){
     char buffer[BUFFLEN];
     int ret = recv(socketfd, buffer, BUFFLEN, 0);
-    if (ret == 0) {
-        printf("Client disconnect\n");
+    if (ret == 0){
+        printf("Server disconnected\n");
+        close(socketfd);
         exit(1);
     }
-    else if (ret<0){
-        perror("Recv error");
-        exit(1);
-    }
-    else {
+    else if (ret>0){
     if (strcmp(buffer,"Err")==0){
             printf("File not exist\n");
         }
@@ -173,16 +170,16 @@ int main(int argc, char **argv){
     while(1){
         size_t len_file = 0;
         ssize_t rdn;
-        char *filename =  (char*)malloc(20*sizeof(char));
+        char *filename1 =  (char*)malloc(20*sizeof(char));
     while(1){
         printf("Nhap file muon tai: ");
-        if ((rdn = getline(&filename,&len_file,stdin))==-1){
+        if ((rdn = getline(&filename1,&len_file,stdin))==-1){
             perror("Getline error");
             break;
         }
-        filename[strlen(filename)-1] = '\0';
-        // filename = filename1;
-        if (strcmp(filename,"Q")==0){
+        filename1[strlen(filename1)-1] = '\0';
+        filename = filename1;
+        if (strcmp(filename1,"Q")==0){
             close(socketfd);
             exit(1);
         }
