@@ -181,11 +181,15 @@ int main(int argc, char **argv){
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
-            printf("%s\n",buffer);
             if (strcmp(buffer,"OK")!=0){
             writen(op,buffer,ret);
-            t++;
-            lseek(op,t*BUFFLEN,SEEK_SET);
+            close(op);
+            printf("Size from client: %ld\n",t);
+            break;
+            }
+            else{
+            t+=ret;
+            lseek(op,t,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
             ret = recv(socketfd,buffer,BUFFLEN,0);
             printf("%ld\n",ret);
@@ -193,16 +197,15 @@ int main(int argc, char **argv){
                 perror("Recv error/Client disconnected");
                 exit(1);
             }
+            if (ret ==0){
+                printf("Server disconnected");
+                exit(1);
             }
-            else {
-            close(op);
-            printf("Size from client: %ld\n",t*BUFFLEN+ret);
-            break;
             }
         }
         
         }
-        break;
+        // break;
         }
 
     free(buffer);
