@@ -147,7 +147,10 @@ int main(int argc, char **argv){
             break;
         }
         filename[strlen(filename)-1] = '\0';
-        
+        if (strcmp(filename,"Q")==0){
+            close(socketfd);
+            exit(1);
+        }
         memset(buffer,'\0',BUFFLEN);
         strcpy(buffer,filename);
         if (send(socketfd,buffer,BUFFLEN,0)<0){
@@ -162,9 +165,6 @@ int main(int argc, char **argv){
                 exit(1);
             }
             printf("File available: %s\n",buffer);
-        }
-        else if (strcmp(filename,"Q")==0){
-            close(socketfd);
         }
         else break;
     }

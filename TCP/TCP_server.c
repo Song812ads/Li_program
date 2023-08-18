@@ -128,8 +128,7 @@ int main(int argc, char **argv){
     struct timeval tv;
     // tv.tv_sec = 5;
     // tv.tv_usec = 0;
-    ssize_t ti = 0; 
-    long sz = 0;
+
 
     // Socket create:
     if ((serverSocketfd = socket(AF_INET, SOCK_STREAM,0))<0){
@@ -234,6 +233,8 @@ while(1){
         int op = open(path_buffer, O_RDONLY);
         free(path_buffer);
         lseek(op,0,SEEK_SET);
+        ssize_t ti = 0; 
+        long sz = 0;
         while (1){
         memset(buffer,'\0',BUFFLEN);
         sz = readn(op,buffer,BUFFLEN);
@@ -257,7 +258,7 @@ while(1){
             ti++;
             sz = 0;
             lseek(op,ti*BUFFLEN,SEEK_SET);
-            sleep(0.2);
+            sleep(1);
         }
     }  
 }

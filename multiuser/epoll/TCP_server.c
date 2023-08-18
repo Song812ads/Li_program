@@ -256,14 +256,13 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                     memset(path_buffer,'\0',sizeof(path_buffer));
                     strcpy(path_buffer,path);
                     strcpy(path_buffer+len,buffer);
-                    int sz = 0, ti = 0;
                     if (checkfile(path_buffer)==0){
                         printf("File not exist \n");
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,"Err");
-                        if (send(sd,buffer,BUFFLEN,0)<0){
+                        while (send(sd,buffer,strlen(buffer),0)<0){
                             if (errno == EAGAIN || errno == EWOULDBLOCK){
-                                break;
+                                continue;
                             }
                             else {
                                 perror("Send error");
@@ -275,6 +274,7 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
                         int op = open(path_buffer, O_RDONLY);
                         free(path_buffer);
                         lseek(op,0,SEEK_SET);
+                        int sz = 0, ti = 0;
                         while (1){
                         memset(buffer,'\0',BUFFLEN);
                         sz = readn(op,buffer,BUFFLEN);
@@ -290,6 +290,7 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) <
 
                         if (sz < BUFFLEN){
                             printf("Transmit: %ld\n",ti*BUFFLEN+sz);  
+                            break;
                         }
                         if (sz == BUFFLEN)
                         {
