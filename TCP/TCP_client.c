@@ -93,7 +93,7 @@ int main(int argc, char **argv){
     signal(SIGINT,exithandler);
     int socketfd; 
     struct sockaddr_in serveradd;
-    unsigned char buffer[BUFFLEN];
+    unsigned char* buffer = (unsigned char*)malloc(BUFFLEN*sizeof(unsigned char));
     
     if (argc!=4){
         printf("Wrong type <server addresss> <server port>\n");
@@ -188,7 +188,7 @@ int main(int argc, char **argv){
             writen(op,buffer,ret);
             if (ret==BUFFLEN){
             t++;
-            printf('%d\n',t);
+            // printf('%d\n',t);
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
