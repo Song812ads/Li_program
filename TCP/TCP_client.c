@@ -247,10 +247,10 @@ int main(int argc, char **argv){
                 perror("Recv error");
                 exit(1);
             }
-            else if (ret == 0){
-                printf("Server disconnected");
-                exit(1);
-            }
+            // else if (ret == 0){
+            //     printf("Server disconnected");
+            //     exit(1);
+            // }
             }
             else {
             close(op);
