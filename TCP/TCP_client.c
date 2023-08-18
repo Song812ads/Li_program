@@ -205,6 +205,7 @@ int main(int argc, char **argv){
                 printf("Server disconnected");
                 exit(1);
             }
+            printf("%d\n",ret);
             }
             else {
             close(op);
