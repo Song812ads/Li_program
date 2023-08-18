@@ -159,7 +159,7 @@ int main(int argc, char **argv){
         printf( "setsockopt fail\n" );
 
 
-    if(fcntl(socketfd, F_SETFL, O_NONBLOCK|O_ASYNC))
+    if(fcntl(socketfd, F_SETFL, O_NONBLOCK|O_ASYNC)<0)
         printf("Error in setting socket to async, nonblock mode");  
     
     signal(SIGIO, signio_handler); // assign SIGIO to the handler
