@@ -91,12 +91,8 @@ void signio_handler(int signo){
     }
     else {
     if (strcmp(buffer,"Err")==0){
-            while (lock.l_type != F_UNLCK){;}
-            lock.l_type = F_WRLCK;
-            fcntl(1,F_SETLK,&lock);
             printf("File not exist\n");
-            lock.l_type = F_UNLCK;
-            fcntl(1,F_SETLK,&lock);
+
         }
         else  {
             ssize_t t = 0;
@@ -119,12 +115,9 @@ void signio_handler(int signo){
             else {
             close(op);
             // close(socketfd);
-            while (lock.l_type != F_UNLCK){;}
-            lock.l_type = F_WRLCK;
-            fcntl(1,F_SETLK,&lock);
+
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
-            lock.l_type = F_UNLCK;
-            fcntl(1,F_SETLK,&lock);
+
             break;
             }
         }}
@@ -189,23 +182,11 @@ int main(int argc, char **argv){
         printf("Error in setting own to socket");
 
     while(1){
-        lock.l_type = F_UNLCK;
-        lock.l_whence = SEEK_SET; 
-        lock.l_start = 0;        
-        lock.l_len = 0;          
-        lock.l_pid = getpid();
-        fcntl(1,F_SETLK,&lock);
         size_t len_file = 0;
         ssize_t rdn;
     while(1){
         char* filename1 = (char*)malloc(20*sizeof(char));
-        int re = fcntl(1, F_SETLK,&lock);
-        while (lock.l_type != F_UNLCK){;}
-        lock.l_type = F_WRLCK;
-        fcntl(1,F_SETLK,&lock);
         printf("Nhap file muon tai: ");
-        lock.l_type = F_UNLCK;
-        fcntl(1,F_SETLK,&lock);
         if ((rdn = getline(&filename1,&len_file,stdin))==-1){
             perror("Getline error");
             break;
@@ -231,12 +212,9 @@ int main(int argc, char **argv){
                 perror("Recv error");
                 exit(1);
             }
-            while (lock.l_type != F_UNLCK){;}
-            lock.l_type = F_WRLCK;
-            fcntl(1,F_SETLK,&lock);
+
             printf("File available: %s\n",buffer);
-            lock.l_type = F_UNLCK;
-            fcntl(1,F_SETLK,&lock);
+
         }
         else break;
     }
