@@ -242,7 +242,7 @@ int main(int argc, char **argv){
             sz = 0;
             lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
-            int ret = readLine(socketfd,buffer,BUFFLEN);
+            int ret = read(socketfd,buffer,BUFFLEN);
             if (ret<0){
                 perror("Recv error");
                 exit(1);
@@ -251,7 +251,6 @@ int main(int argc, char **argv){
                 printf("Server disconnected");
                 exit(1);
             }
-            printf("%d\n",ret);
             }
             else {
             close(op);
