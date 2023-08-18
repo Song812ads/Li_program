@@ -89,7 +89,6 @@ void signio_handler(int signo){
         else  {
             ssize_t t = 0;
             long sz = 0;
-            printf("%s\n", filename);
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
@@ -174,15 +173,15 @@ int main(int argc, char **argv){
     while(1){
         size_t len_file = 0;
         ssize_t rdn;
-        char *filename1 =  (char*)malloc(20*sizeof(char));
+        char *filename =  (char*)malloc(20*sizeof(char));
     while(1){
         printf("Nhap file muon tai: ");
-        if ((rdn = getline(&filename1,&len_file,stdin))==-1){
+        if ((rdn = getline(&filename,&len_file,stdin))==-1){
             perror("Getline error");
             break;
         }
-        filename1[strlen(filename1)-1] = '\0';
-        filename = filename1;
+        filename[strlen(filename)-1] = '\0';
+        // filename = filename1;
         if (strcmp(filename,"Q")==0){
             close(socketfd);
             exit(1);
