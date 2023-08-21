@@ -86,33 +86,10 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
   return (n);
 }
 
-long file_transfer(char* buffer, int t){
-    int fp = open(buffer, O_RDONLY | O_NONBLOCK);
-    if (fp == -1){
-        perror("Error reading file\n");
-        exit(1);
-    }
-    long offset = 0;
-    while (offset < BUFFLEN){
-        ssize_t readnow = pread(fp, buffer+offset, 1, t*BUFFLEN + offset);
-        if (readnow == 0){
-            break;
-        }
-        else offset = offset+readnow;
-    }
-    close(fp);
-    return offset;
-}
-
-
 int main(int argc, char **argv){
-    signal(SIGPIPE,pipebroke);
-    signal(SIGINT,exithandler);
-    
-    // Thiêt lập port và các phương thức cơ bản giao tiếp TCP/IP
     int serverSocketfd;
     struct sockaddr_in serveradd, clientadd;
-    char *buffer = (char* )malloc(BUFFLEN * sizeof(char));
+    char buffer[BUFFLEN];
     socklen_t cli_ad_sz = sizeof(clientadd);
     char *hostaddr;
     struct hostent* host; 
@@ -141,21 +118,7 @@ int main(int argc, char **argv){
     }
     else printf("Binding...\n");
 
-    //     int optval = 1;
-    // socklen_t optlen = sizeof(optval);
-    // if(setsockopt(serverSocketfd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
-    //   perror("setsockopt()");
-    //   close(serverSocketfd);
-    //   exit(EXIT_FAILURE);
-    // }
-    struct timeval tv;
-    tv.tv_sec = 20;  /* 20 Secs Timeout */
-    tv.tv_usec = 0;
-    if(setsockopt(serverSocketfd, SOL_SOCKET, SO_RCVTIMEO,(char *)&tv,sizeof(tv)) < 0)
-    {
-        printf("Time Out\n");
-        return -1;
-    }
+
 
     while (1){
         memset(buffer,'\0',BUFFLEN);

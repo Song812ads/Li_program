@@ -29,13 +29,14 @@ static int num_req = 0;
 struct request *req = NULL;
 struct request *last_req = NULL;
 
-void handle(int socket, struct sockaddr_in clientadd, unsigned int clientlength);
+void handle(int socket, struct sockaddr_in clientadd, 
+                            unsigned int clientlength);
 
 void* handle_request(){
     pthread_mutex_lock(&request_mutex);
     while (1){
-        if (num_req == 0) pthread_cond_wait(&got_request,&request_mutex);
-  
+        if (num_req == 0) pthread_cond_wait(&got_request,
+                                        &request_mutex);
         int socket = req->socket;
         struct sockaddr_in clientadd = req->clientadd;
         unsigned int clientlength = req->clientlength;
@@ -56,7 +57,8 @@ void* handle_request(){
     }
 }
 
-void add_req(int socket, struct sockaddr_in clientadd, unsigned int clientlength){
+void add_req(int socket, struct sockaddr_in clientadd, 
+                            unsigned int clientlength){
     pthread_mutex_lock(&request_mutex);
     struct request* a_request = (struct request *)malloc(sizeof(struct request));
     a_request -> socket = socket;
@@ -227,7 +229,27 @@ while (1){
         }
     }}}
             
+char *sock_ntop(const struct sockaddr *sa, socklen_t salen)
+{
+	char	portstr[8];
+	static char str[128];
 
+	switch (sa->sa_family) {
+	case AF_INET: {
+		      struct sockaddr_in *sin = (struct sockaddr_in *)sa;
+		      if (inet_ntop(AF_INET, &sin->sin_addr, str, sizeof(str))
+				      == NULL)
+			      return NULL;
+		      if (ntohs(sin->sin_port) != 0) {
+			      snprintf(portstr, sizeof(portstr), ":%d", 
+					      ntohs(sin->sin_port));
+			      strcat(str, portstr);
+		      }
+		      return str;
+	      }
+	}
+	return NULL;
+}
 int main(int argc, char **argv){
     signal(SIGPIPE,pipebroke);
     signal(SIGINT,exithandler);
@@ -240,9 +262,7 @@ int main(int argc, char **argv){
     char *buffer = (char* )malloc(BUFFLEN * sizeof(char));
     int clientlength = sizeof(clientadd);
     pthread_t thread;
-    for (int i =0; i <MAX_CLIENTS; i++) {
-    pthread_create(&thread, NULL, handle_request,NULL);
-    }
+
     if ((serverSocketfd = socket(AF_INET, SOCK_STREAM,0))<0){
         perror("Socket create fail");
         exit(1);
@@ -272,7 +292,9 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) <
         exit(1);
     }
     else printf("Listening...\n");
-
+    for (int i =0; i <MAX_CLIENTS; i++) {
+        pthread_create(&thread, NULL, handle_request,NULL);
+    }
 while (1){
     FD_ZERO(&readfds);
     FD_SET(serverSocketfd,&readfds);
@@ -284,13 +306,14 @@ while (1){
 
     if (FD_ISSET(serverSocketfd, &readfds)) 
         {
-            if (( new_socket = accept(serverSocketfd, (struct sockaddr *)&clientadd, &clientlength))<0)
+            if (( new_socket = accept(serverSocketfd, 
+            (struct sockaddr *)&clientadd, &clientlength))<0)
             {
                 perror("accept");
                 exit(1);
             }
-            printf("New connection ,ip is : %s , port : %d \n"  , inet_ntoa(clientadd.sin_addr) 
-            , ntohs(clientadd.sin_port));
+            printf("New connection is : %s\n",sock_ntop((struct sockaddr*)&clientadd,
+                                                INET_ADDRSTRLEN));
             add_req(new_socket,clientadd,clientlength);
         }
     }

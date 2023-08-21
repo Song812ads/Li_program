@@ -116,26 +116,11 @@ int main(int argc, char **argv){
     serveradd.sin_port = htons ( atoi(port) );
     serveradd.sin_addr.s_addr = inet_addr(argv[1]);
 
-    //     int optval = 1;
-    // socklen_t optlen = sizeof(optval);
-    // if(setsockopt(socketfd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
-    //   perror("setsockopt()");
-    //   close(socketfd);
-    //   exit(EXIT_FAILURE);
-    // }
-
-
 while(1){
-        char* filename=NULL;
-        size_t len_file = 0;
-        ssize_t rdn;
+        char filename[20];
     while(1){
         printf("Nhap file muon tai: ");
-        if ((rdn = getline(&filename,&len_file,stdin))==-1){
-            perror("Getline error");
-            break;
-        }
-        filename[rdn-1] = '\0';
+        gets(filename);
         if(sendto(socketfd,filename,rdn-1,0, (struct sockaddr *)&serveradd, sizeof(serveradd))<0) {
             perror("Send error");
             exit(1);
@@ -155,9 +140,7 @@ while(1){
         if((ret = recvfrom(socketfd,buffer,BUFFLEN,0,(struct sockaddr *)&serveradd, &serlen))<0){
             perror("Recv error");
             exit(1);
-            // if (a==0) exit(1);
         }
-        // printf("%d\n",ret);
         if (strcmp(buffer,"Err")==0){
             printf("File not exist");
             break;

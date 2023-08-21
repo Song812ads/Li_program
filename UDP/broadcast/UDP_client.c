@@ -69,62 +69,60 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
   return (n);
 }
 
+char *sock_ntop(const struct sockaddr *sa, socklen_t salen)
+{
+	char	portstr[8];
+	static char str[128];
+
+	switch (sa->sa_family) {
+	case AF_INET: {
+		      struct sockaddr_in *sin = (struct sockaddr_in *)sa;
+		      if (inet_ntop(AF_INET, &sin->sin_addr, str, sizeof(str))
+				      == NULL)
+			      return NULL;
+		      if (ntohs(sin->sin_port) != 0) {
+			      snprintf(portstr, sizeof(portstr), ":%d", 
+					      ntohs(sin->sin_port));
+			      strcat(str, portstr);
+		      }
+		      return str;
+	      }
+	}
+	return NULL;
+}
+
 int main(int argc, char **argv){
-    // Thiết lập phương thức nhận dữ liêu và tạo kết nối đến server
-    signal(SIGPIPE,pipebroke);
-    signal(SIGINT,exithandler);
     int socketfd; 
     struct sockaddr_in serveradd;
     socklen_t serlen = sizeof(serveradd);
-    unsigned char *buffer = (unsigned char* )malloc(BUFFLEN * sizeof(unsigned char));
+    char buffer[BUFFLEN];
     fd_set readfds;
-    
-    if (argc!=4){
-        printf("Wrong type <server addresss> <server port>\n");
-        exit(1);
-    }
-
-    // Socket create:
+    // if (argc!=4){
+    //     printf("Wrong type <server addresss> <server port>\n");
+    //     exit(1);
+    // }
     if ((socketfd = socket(AF_INET,SOCK_DGRAM,0))<0){
         perror("Socket create fail\n");
         exit(1);
     }
     else printf("Socket: %d \n",socketfd);
-
     bzero (&serveradd, sizeof(serveradd));
     serveradd.sin_family = AF_INET;
     char* port = argv[2];
     serveradd.sin_port = htons ( 5375 );
     serveradd.sin_addr.s_addr = htonl(INADDR_BROADCAST);
-
-    struct timeval tv;
-    tv.tv_sec = 20;  /* 20 Secs Timeout */
-    tv.tv_usec = 0;
-    if(setsockopt(socketfd, SOL_SOCKET, SO_RCVTIMEO,(char *)&tv,sizeof(tv)) < 0)
-    {
-        printf("Time Out\n");
-        return -1;
-    }
     const int on = 1;
-    int ret = setsockopt(socketfd, SOL_SOCKET, SO_BROADCAST, (char*)&on, sizeof(on));
+    int ret = setsockopt(socketfd, SOL_SOCKET, SO_BROADCAST, 
+                                    (char*)&on, sizeof(on));
     if (ret == -1) {
         perror("setsockopt error");
         return 0;
     }
-
-
-    char* filename=NULL;
-    size_t len_file = 0;
-    ssize_t rdn;
+    char filename[20];
     printf("Nhap file muon tai: ");
-    if ((rdn = getline(&filename,&len_file,stdin))==-1){
-        perror("Getline error");
-        // break;
-    }
-    filename[strlen(filename)-1] = '\0';
-    memset(buffer,'\0',BUFFLEN);
-    strcpy(buffer,filename);
-    if(sendto(socketfd,buffer,BUFFLEN,0, (struct sockaddr *)&serveradd, sizeof(serveradd))<0) {
+    gets(filename);
+    if(sendto(socketfd,filename,strlen(filename),0, 
+    (struct sockaddr *)&serveradd, sizeof(serveradd))<0) {
         perror("Send error");
         exit(1);
     }
@@ -132,16 +130,17 @@ int main(int argc, char **argv){
         FD_SET(socketfd,&readfds);
         while(1){
         int ret = select(socketfd+1,&readfds,NULL,NULL,NULL);
-        if ((ret < 0) && (errno!=EINTR)) 
+        if (ret < 0) 
         {
             printf("select error");
             exit(1);
         }
         else if (ret>0){
-            printf("IP address is: %s\n", inet_ntoa(serveradd.sin_addr));
-            printf("port is: %d\n", (int) ntohs(serveradd.sin_port));
+        printf("Client: %s\n", sock_ntop((struct sockaddr*)&serveradd,
+                                                INET_ADDRSTRLEN));
             memset(buffer,'\0',BUFFLEN);           
-            if (recvfrom(socketfd,buffer,BUFFLEN,0, (struct sockaddr *)&serveradd, &serlen)<0){
+            if (recvfrom(socketfd,buffer,BUFFLEN,0, 
+            (struct sockaddr *)&serveradd, &serlen)<0){
                 perror("Recv error");
                 exit(1);
             }
@@ -174,14 +173,12 @@ int main(int argc, char **argv){
             }
             else {
             close(op);
-            // close(socketfd);
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
             break;
             }
         }
         }
         }
-
     }
     free(buffer);
     return 0;

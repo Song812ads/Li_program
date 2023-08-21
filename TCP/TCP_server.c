@@ -12,7 +12,8 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#define BUFFLEN 500
+#include <dirent.h>
+#define BUFFLEN 1000
 #define check(expr) if (!(expr)) { perror(#expr); kill(0, SIGTERM); }
 
 void pipebroke()
@@ -26,68 +27,76 @@ void exithandler()
     exit(EXIT_FAILURE);
 }
 
-ssize_t  readn(int fd, void *vptr, size_t n)
-{    size_t  nleft;
-    ssize_t nread;
-    char   *ptr;
-
-    ptr = vptr;
-    nleft = n;
+ssize_t  readn(int fd, void *vptr, size_t n){    
+    size_t  nleft= n;; ssize_t nread;
+    char   *ptr; ptr = vptr;
     while (nleft > 0) {
         if ( (nread = read(fd, ptr, nleft)) < 0) {
-            if (errno == EINTR)
-                nread = 0;      /* and call read() again */
-            else
-                return (-1);
-        } else if (nread == 0)
-            break;              /* EOF */
-
-        nleft -= nread;
-       ptr += nread;
-    }
+            if (errno == EINTR) nread = 0;      /* and call read() again */
+            else  return (-1);
+        } 
+        else if (nread == 0) break;              /* EOF */
+    nleft -= nread;
+    ptr += nread; }
      return (n - nleft);         /* return >= 0 */
 }
 
-ssize_t  writen(int fd, const void *vptr, size_t n)
- {
-    size_t nleft;
-     ssize_t nwritten;
-    const char *ptr;
-
-  ptr = vptr;
-    nleft = n;
+ssize_t  writen(int fd, const void *vptr, size_t n) {
+    size_t nleft = n; ssize_t nwritten; const char *ptr;
+    ptr = vptr;
     while (nleft > 0) {
         if ( (nwritten = write(fd, ptr, nleft)) <= 0) {
             if (nwritten < 0 && errno == EINTR)
                nwritten = 0;   /* and call write() again */
            return (-1);    /* error */
         }
-
-      nleft -= nwritten;
+        nleft -= nwritten;
         ptr += nwritten;
     }
-  return (n);
+  return (n);}
+
+char *sock_ntop(const struct sockaddr *sa, socklen_t salen)
+{
+	char	portstr[8];
+	static char str[128];
+
+	switch (sa->sa_family) {
+	case AF_INET: {
+		      struct sockaddr_in *sin = (struct sockaddr_in *)sa;
+		      if (inet_ntop(AF_INET, &sin->sin_addr, str, sizeof(str))
+				      == NULL)
+			      return NULL;
+		      if (ntohs(sin->sin_port) != 0) {
+			      snprintf(portstr, sizeof(portstr), ":%d", 
+					      ntohs(sin->sin_port));
+			      strcat(str, portstr);
+		      }
+		      return str;
+	      }
+	}
+	return NULL;
 }
 
-long file_transfer(char* buffer, int t){
-    int fp = open(buffer, O_RDONLY);
-    if (fp == -1){
-        perror("Error reading file\n");
-        exit(1);
+ ssize_t readline(int fd, void *vptr, size_t maxlen){
+    ssize_t n, rc;char    c, *ptr;
+    ptr = vptr;
+    for (n = 1; n < maxlen; n++) {
+      again:
+        if ( (rc = read(fd, &c, 1)) == 1) {
+            *ptr++ = c;
+           if (c == '\n')
+                break;          /* newline is stored, like fgets() */
+        } else if (rc == 0) {
+           *ptr = 0;
+            return (n - 1);     /* EOF, n - 1 bytes were read */
+        } else {
+            if (errno == EINTR)
+                 goto again;
+            return (-1);        /* error, errno set by read() */
+         }
     }
-    long offset = 0;
-    while (offset < BUFFLEN){
-        ssize_t readnow = pread(fp, buffer+offset, 1, t*BUFFLEN + offset);
-        if (readnow == 0){
-            break;
-        }
-        else offset = offset+readnow;
-    }
-    close(fp);
-    printf("Continue sending from server part %d \n",t+1);
-
-    return offset;
-}
+    *ptr = 0;                   /* null terminate like fgets() */
+    return (n);}
 
 int checkfile(unsigned char* buffer){
     if (access(buffer, F_OK) == -1){
@@ -102,19 +111,20 @@ int checkfile(unsigned char* buffer){
 }
 
 
-void enable_keepalive(int sock) {
-    int yes = 1;
-    check(setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(int)) != -1);
-
-    int idle = 1;
-    check(setsockopt(sock, IPPROTO_TCP, TCP_KEEPIDLE, &idle, sizeof(int)) != -1);
-
-    int interval = 1;
-    check(setsockopt(sock, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(int)) != -1);
-
-    int maxpkt = 10;
-    check(setsockopt(sock, IPPROTO_TCP, TCP_KEEPCNT, &maxpkt, sizeof(int)) != -1);
+void checkfolder(unsigned char* buffer){
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(buffer);
+    memset(buffer,0,BUFFLEN);
+    if (d) {
+        while ((dir = readdir(d)) != NULL) {
+        strcat(buffer,dir->d_name);
+        strcat(buffer,"     ");
+        }
+        closedir(d);
+    }
 }
+
 
 int main(int argc, char **argv){
     signal(SIGPIPE,pipebroke);
@@ -123,7 +133,7 @@ int main(int argc, char **argv){
     // Thiêt lập port và các phương thức cơ bản giao tiếp TCP/IP
     int serverSocketfd, clientSocketfd, valread;
     struct sockaddr_in serveradd, clientadd;
-    char buffer[BUFFLEN];
+    char *buffer = (char*)malloc(BUFFLEN);
     int clientlength = sizeof(clientadd);
     struct timeval tv;
 
@@ -158,66 +168,51 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) <
     }
     else printf("Listening...\n");
     bzero(&clientadd,sizeof(clientadd));
-
 begin:
 while(1){
-    // memset(buffer,'\0',BUFFLEN);
-    if ((clientSocketfd = accept(serverSocketfd, (struct sockaddr*) &clientadd, &clientlength))==-1){
+    if ((clientSocketfd = accept(serverSocketfd, 
+    (struct sockaddr*) &clientadd, &clientlength))==-1){
         printf("Server accept fail");
         exit(1);
     }
     else printf("Server Accepted\n");
-    int optval = 1;
-    socklen_t optlen = sizeof(optval);
-    if(setsockopt(clientSocketfd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
-      perror("setsockopt()");
-      close(clientSocketfd);
-      exit(EXIT_FAILURE);
-    }
-    printf("IP address is: %s\n", inet_ntoa(clientadd.sin_addr));
-    printf("port is: %d\n", (int) ntohs(clientadd.sin_port));
-
-
+    printf("Client: %s\n", sock_ntop((struct sockaddr*)&clientadd,
+                                                INET_ADDRSTRLEN));
+    char* path = "C:/cygwin64/home/MSI/storage/";
 start:
 while(1){
     memset(buffer,'\0',BUFFLEN);
-    int ret= read(clientSocketfd,buffer,BUFFLEN);
+    int ret = read(clientSocketfd,buffer,BUFFLEN);
     if (ret <0){  
         perror("Rcv error");
         exit(1);
     }
-    else if (ret ==0){
+    else if (ret == 0){
         printf("Client disconnect\n");
-        close(clientSocketfd);
         goto begin;
     }
     if (strcmp(buffer,"A")==0){
         memset(buffer,'\0',BUFFLEN);
-        strcpy(buffer,"File");
-        if (send(clientSocketfd,buffer,strlen(buffer),0)<0){
-            perror("Send error");
-            exit(1);
-        }
+        strcpy(buffer,path);
+        checkfolder(buffer);
+        writen(clientSocketfd,buffer,strlen(buffer));
+        goto start;
     }
-    else break;}
+    else break;
+}
     printf("File client want: %s\n",buffer);
-    char* path = "/home/phuongnam/transmit/";
     size_t len = strlen(path);
     char* path_buffer = malloc(len+strlen(buffer));
     memset(path_buffer,'\0',sizeof(path_buffer));
     strcpy(path_buffer,path);
     strcpy(path_buffer+len,buffer);
     if (checkfile(path_buffer)==0){
-        printf("File dont exist");
+        printf("File dont exist\n");
         memset(buffer,'\0',BUFFLEN);
         strcpy(buffer,"Err");
-        if (send(clientSocketfd,buffer,strlen(buffer),0)<0){
-            perror("Send error");
-            break;
-        }
+        writen(clientSocketfd,buffer,strlen(buffer));
         goto start;
     }
-    
     else {
         int op = open(path_buffer, O_RDONLY);
         free(path_buffer);
@@ -227,18 +222,8 @@ while(1){
         while (1){
         memset(buffer,'\0',BUFFLEN);
         sz = readn(op,buffer,BUFFLEN);
-        printf("%ld\n",sz);
-
-        if (send(clientSocketfd,buffer,sz,0)<0){
-            perror("Send error1");
-            exit(1);
-        }
+        writen(clientSocketfd,buffer,sz);
         if (sz < BUFFLEN){
-        char mess[3] = "OK";
-        if (send(clientSocketfd,mess,3,0)<0){
-            perror("Send err");
-            exit(1);
-        }
         printf("Transmit: %ld\n",ti*BUFFLEN+sz);
         goto start;
         }
@@ -247,14 +232,8 @@ while(1){
             ti++;
             sz = 0;
             lseek(op,ti*BUFFLEN,SEEK_SET);
-            sleep(1);
         }
     }  
-}
-
-
-// break;
-}
-// free(buffer);
+}}
 close(serverSocketfd);
 }

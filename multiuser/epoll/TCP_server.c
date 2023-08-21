@@ -57,7 +57,6 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
     size_t nleft;
      ssize_t nwritten;
     const char *ptr;
-
   ptr = vptr;
     nleft = n;
     while (nleft > 0) {
@@ -66,7 +65,6 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
                nwritten = 0;   /* and call write() again */
            return (-1);    /* error */
         }
-
       nleft -= nwritten;
         ptr += nwritten;
     }

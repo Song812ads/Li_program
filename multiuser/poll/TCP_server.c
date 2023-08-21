@@ -98,7 +98,27 @@ int checkfile(unsigned char* buffer){
         return 1;
     }
 }
+char *sock_ntop(const struct sockaddr *sa, socklen_t salen)
+{
+	char	portstr[8];
+	static char str[128];
 
+	switch (sa->sa_family) {
+	case AF_INET: {
+		      struct sockaddr_in *sin = (struct sockaddr_in *)sa;
+		      if (inet_ntop(AF_INET, &sin->sin_addr, str, sizeof(str))
+				      == NULL)
+			      return NULL;
+		      if (ntohs(sin->sin_port) != 0) {
+			      snprintf(portstr, sizeof(portstr), ":%d", 
+					      ntohs(sin->sin_port));
+			      strcat(str, portstr);
+		      }
+		      return str;
+	      }
+	}
+	return NULL;
+}
 int main(int argc, char **argv){
     signal(SIGPIPE,pipebroke);
     signal(SIGINT,exithandler);
@@ -158,8 +178,10 @@ while (1){
     int pollResult = poll(pollfds,useClient+1,0);
     if (pollResult>0){
         if (pollfds[0].revents & POLLIN){
-            int client_socket = accept(serverSocketfd,(struct sockaddr *)&clientadd, &clientlength);  
-            printf("Client accepted: %s\n", inet_ntoa(clientadd.sin_addr));
+            int client_socket = accept(serverSocketfd,
+                (struct sockaddr *)&clientadd, &clientlength);  
+            printf("Client: %s\n", sock_ntop((struct sockaddr*)&clientadd,
+                                                INET_ADDRSTRLEN));
             for (int i = 1; i<MAX_CLIENTS+1;i++){
                 if (pollfds[i].fd == 0){
                     pollfds[i].fd = client_socket;
@@ -178,8 +200,11 @@ while (1){
                 pollfds[i].fd = 0;
                 break;
             }
-
-            else if (pollfds[i].revents & POLLIN){
+            else if (pollfds[i].revents & POLLERR){
+                perror("Poll");
+                exit(1);
+            }
+            else  (pollfds[i].revents & POLLIN){
                     int sd = pollfds[i].fd;
                     memset(buffer,'\0',BUFFLEN);
                     int val = recv(sd,buffer,BUFFLEN,0);
@@ -250,9 +275,7 @@ while (1){
             }}
             break;
             }
-            else if (pollfds[i].revents & POLLERR){
-                perror("Poll");
-            }}
+}
         }
     }                   
     free(buffer);

@@ -86,6 +86,26 @@ void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
     close(fp);
     printf("File write complete part %d \n",t+1);
 }
+ ssize_t readline(int fd, void *vptr, size_t maxlen){
+    ssize_t n, rc;char    c, *ptr;
+    ptr = vptr;
+    for (n = 1; n < maxlen; n++) {
+      again:
+        if ( (rc = read(fd, &c, 1)) == 1) {
+            *ptr++ = c;
+           if (c == '\n')
+                break;          /* newline is stored, like fgets() */
+        } else if (rc == 0) {
+           *ptr = 0;
+            return (n - 1);     /* EOF, n - 1 bytes were read */
+        } else {
+            if (errno == EINTR)
+                 goto again;
+            return (-1);        /* error, errno set by read() */
+         }
+    }
+    *ptr = 0;                   /* null terminate like fgets() */
+    return (n);}
 
 int main(int argc, char **argv){
     // Thiết lập phương thức nhận dữ liêu và tạo kết nối đến server
@@ -105,7 +125,6 @@ int main(int argc, char **argv){
         perror("Socket create fail\n");
         exit(1);
     }
-    else printf("Socket: %d \n",socketfd);
 
     bzero (&serveradd, sizeof(serveradd));
     serveradd.sin_family = AF_INET;
@@ -116,36 +135,32 @@ int main(int argc, char **argv){
         close(socketfd);
         exit(1);
     }
-
+    
     if (connect(socketfd,(struct sockaddr *)&serveradd, sizeof(serveradd))<0){
         perror("Connection fail");
         close(socketfd);
         exit(1);
     }
-
-    int optval = 1;
-    socklen_t optlen = sizeof(optval);
-    if(setsockopt(socketfd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
-      perror("setsockopt()");
-      close(socketfd);
-      exit(EXIT_FAILURE);
-    }
-    struct timeval tv;
-    tv.tv_sec = 20;
-    tv.tv_usec = 0;
-        if( setsockopt (socketfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0 )
-        printf( "setsockopt fail\n" );
-
-    while(1){
-        char* filename=NULL;
-        size_t len_file = 0;
-        ssize_t rdn;
-    while(1){
-        printf("Nhap file muon tai: ");
-        if ((rdn = getline(&filename,&len_file,stdin))==-1){
-            perror("Getline error");
-            break;
+    
+    int maxfd;
+    fd_set fset;
+    while(1){ 
+        printf("Nhap file muon tai: \n");
+        char filename[100];
+        FD_ZERO(&fset);
+        FD_SET(fileno(stdin),&fset);
+        FD_SET(socketfd,&fset);
+        maxfd = fileno(stdin)>socketfd ? fileno(stdin) : socketfd;
+        select(maxfd+1,&fset,NULL,NULL,NULL);
+        if (FD_ISSET(socketfd,&fset)){
+            if (readline(socketfd,buffer,BUFFLEN)==0){
+                printf("Server disconnected");
+                close(socketfd);
+                exit(1);
+            }
         }
+        else if (FD_ISSET(fileno(stdin),&fset)){   
+        fgets(filename, 20, stdin);
         filename[strlen(filename)-1] = '\0';
         if (strcmp(filename,"Q")==0){
             close(socketfd);
@@ -166,8 +181,7 @@ int main(int argc, char **argv){
             }
             printf("File available: %s\n",buffer);
         }
-        else break;
-    }
+    
         int ret = 0;
         memset(buffer,'\0',BUFFLEN);
         if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
@@ -207,7 +221,7 @@ int main(int argc, char **argv){
         }
         // break;
         }
-
+}
     free(buffer);
     return 0;
 }

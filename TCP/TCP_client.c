@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
-#define BUFFLEN 500
+#define BUFFLEN 1000
 typedef enum {FIRST, AFTER} file_mode;
 
 void pipebroke()
@@ -66,34 +66,13 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
   return (n);
 }
 
-void file_transfer(char* file, char* buffer, long size, int t, file_mode mode){
-    int fp = open(file, O_RDWR | O_APPEND | O_CREAT | O_SYNC, 0644);
-    if (fp == -1){
-        perror("Error writing file\n");
-        exit(1);
-    }
-    off_t offset = 0;
-    for (int i=0; i < size; i++){
-        ssize_t readnow = pwrite(fp, buffer + offset, 1,t*BUFFLEN + offset);
-        if (readnow < 0){
-            printf("Read unsuccessful \n");
-            free(buffer);
-            close(fp);
-            exit(1);
-        }
-        offset = offset+readnow;
-    }
-    close(fp);
-    printf("File write complete part %d \n",t+1);
-}
-
 int main(int argc, char **argv){
     // Thiết lập phương thức nhận dữ liêu và tạo kết nối đến server
     signal(SIGPIPE,pipebroke);
     signal(SIGINT,exithandler);
     int socketfd; 
     struct sockaddr_in serveradd;
-    char buffer[BUFFLEN];
+    char *buffer = (char*)malloc(BUFFLEN);
     
     if (argc!=4){
         printf("Wrong type <server addresss> <server port>\n");
@@ -122,56 +101,36 @@ int main(int argc, char **argv){
         close(socketfd);
         exit(1);
     }
-
-    int optval = 1;
-    socklen_t optlen = sizeof(optval);
-    if(setsockopt(socketfd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0) {
-      perror("setsockopt()");
-      close(socketfd);
-      exit(EXIT_FAILURE);
-    }
- 
+    
 
     while(1){
-        char* filename=NULL;
-        size_t len_file = 0;
-        ssize_t rdn;
+        char filename[20];
     while(1){
         printf("Nhap file muon tai: ");
-        if ((rdn = getline(&filename,&len_file,stdin))==-1){
-            perror("Getline error");
-            break;
-        }
-        filename[strlen(filename)-1] = '\0';
-        
-        memset(buffer,'\0',BUFFLEN);
-        strcpy(buffer,filename);
-        if (send(socketfd,buffer,BUFFLEN,0)<0){
-            perror("Send error");
+        gets(filename);
+        if (strcmp(filename,"Q")==0){
+            close(socketfd);
             exit(1);
         }
-
+        int ret = writen(socketfd,filename,strlen(filename));
         if (strcmp(filename,"A")==0){
             memset(buffer,'\0',BUFFLEN);
-            if (recv(socketfd,buffer,BUFFLEN,0)<0){
-                perror("Recv error");
-                exit(1);
-            }
+            int ret = read(socketfd,buffer,BUFFLEN);
             printf("File available: %s\n",buffer);
-        }
-        else if (strcmp(filename,"Q")==0){
-            close(socketfd);
         }
         else break;
     }
         int ret = 0;
         memset(buffer,'\0',BUFFLEN);
-        if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
+        ret = read(socketfd,buffer,BUFFLEN);
+        if (ret == 0){
+            printf("Server disconnected\n");
+            exit(1);
+        }
+        else if (ret<0){
             perror("Recv error");
             exit(1);
-            // if (a==0) exit(1);
         }
-        //  printf("%s\n",buffer);
         if (strcmp(buffer,"Err")==0){
             printf("File not exist\n");
         }
@@ -181,34 +140,30 @@ int main(int argc, char **argv){
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
-            if (strcmp(buffer,"OK")!=0){
             writen(op,buffer,ret);
-            t+=ret;
-            lseek(op,t,SEEK_SET);
+            if (ret==BUFFLEN){
+            t++;
+            sz = 0;
+            lseek(op,t*BUFFLEN,SEEK_SET);
             memset(buffer,'\0',BUFFLEN);
-            ret = recv(socketfd,buffer,BUFFLEN,0);
-            if (ret < 0){
-                perror("Recv error/Client disconnected");
+            ret = read(socketfd,buffer,BUFFLEN);
+            if (ret<0){
+                perror("Recv error");
                 exit(1);
             }
             else if (ret == 0){
                 printf("Server disconnected");
                 exit(1);
             }
+            }
             else {
-            printf("%ld\n",ret);
-            }
-            }
-            else{
             close(op);
-            printf("Size from client: %ld\n",t);
+            printf("Size from client: %ld\n",t*BUFFLEN+ret);
             break;
+            }
         }
-        
         }
-        // break;
-        }}
-
-    // free(buffer);
+    }
+    free(buffer);
     return 0;
 }

@@ -32,15 +32,12 @@ void exithandler()
 
 int checkfile(unsigned char* buffer){
     if (access(buffer, F_OK) == -1){
-        printf("File don't exist\n");
         return 0;
     }
     else if (access(buffer,R_OK) == -1){
-        printf("Cant read file\n");
         return 0;
     }
     else {
-        printf("File prepare to read\n");
         return 1;
     }
 }
@@ -88,24 +85,6 @@ ssize_t  writen(int fd, const void *vptr, size_t n)
         ptr += nwritten;
     }
   return (n);
-}
-
-long file_transfer(char* buffer, int t){
-    int fp = open(buffer, O_RDONLY | O_NONBLOCK);
-    if (fp == -1){
-        perror("Error reading file\n");
-        exit(1);
-    }
-    long offset = 0;
-    while (offset < BUFFLEN){
-        ssize_t readnow = pread(fp, buffer+offset, 1, t*BUFFLEN + offset);
-        if (readnow == 0){
-            break;
-        }
-        else offset = offset+readnow;
-    }
-    close(fp);
-    return offset;
 }
 
 

@@ -97,6 +97,28 @@ int checkfile(unsigned char* buffer){
     }
 }
 
+char *sock_ntop(const struct sockaddr *sa, socklen_t salen)
+{
+	char	portstr[8];
+	static char str[128];
+
+	switch (sa->sa_family) {
+	case AF_INET: {
+		      struct sockaddr_in *sin = (struct sockaddr_in *)sa;
+		      if (inet_ntop(AF_INET, &sin->sin_addr, str, sizeof(str))
+				      == NULL)
+			      return NULL;
+		      if (ntohs(sin->sin_port) != 0) {
+			      snprintf(portstr, sizeof(portstr), ":%d", 
+					      ntohs(sin->sin_port));
+			      strcat(str, portstr);
+		      }
+		      return str;
+	      }
+	}
+	return NULL;
+}
+
 int main(int argc, char **argv){
     signal(SIGPIPE,pipebroke);
     signal(SIGINT,exithandler);
@@ -151,7 +173,6 @@ if (setsockopt(serverSocketfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) <
     FD_ZERO(&readfds);
 while (1){
     FD_SET(serverSocketfd,&readfds);
-
     int max_sd = serverSocketfd;
 
     for (int i =0; i<MAX_CLIENTS; i++){
@@ -164,21 +185,18 @@ while (1){
         }
     }
 
-    int activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);
-    if ((activity < 0) && (errno!=EINTR)) 
-    {
-        printf("select error");
-    }
+    select( max_sd + 1 , &readfds , NULL , NULL , NULL);
 
     if (FD_ISSET(serverSocketfd, &readfds)) 
         {
-            if (( new_socket = accept(serverSocketfd, (struct sockaddr *)&clientadd, &clientlength))<0)
+            if (( new_socket = accept(serverSocketfd, 
+                (struct sockaddr *)&clientadd, &clientlength))<0)
             {
                 perror("accept");
                 exit(1);
             }
-            printf("New connection ,ip is : %s , port : %d \n"  , inet_ntoa(clientadd.sin_addr) 
-            , ntohs(clientadd.sin_port));
+            printf("Client: %s\n", sock_ntop((struct sockaddr*)&clientadd,
+                                                INET_ADDRSTRLEN));
               
             //add new socket to array of sockets
             for (int i = 0; i < MAX_CLIENTS; i++) 
@@ -200,8 +218,8 @@ while (1){
                 memset(buffer,'\0',BUFFLEN);
                 valread = read(sd,buffer,BUFFLEN);
                 if (valread==0){
-                    getpeername(sd , (struct sockaddr*)&clientadd , (socklen_t*)&clientlength);
-                    printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(clientadd.sin_addr) , ntohs(clientadd.sin_port));
+                    printf("Host disconnected: %s\n",sock_ntop((struct sockaddr*)&clientadd,
+                                                INET_ADDRSTRLEN)); 
                     close(sd);
                     clientSocketfd[i] = 0;
                     break;
