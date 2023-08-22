@@ -145,7 +145,6 @@ while (1){
         memset(path_buffer,'\0',sizeof(path_buffer));
         strcpy(path_buffer,path);
         strcpy(path_buffer+len,buffer);
-        char* siz = malloc(10*sizeof(char));
         if (checkfile(path_buffer)==0){
             printf("File dont exist");
             memset(buffer,'\0',BUFFLEN);
@@ -184,11 +183,11 @@ while (1){
             }
         }  
     }
-free(siz);
 break;
 }
 
 
 free(buffer);
 close(serverSocketfd);
+return 0;
 }
