@@ -167,8 +167,8 @@ int main(int argc, char **argv){
             exit(1);
         }
         writen(socketfd,filename,strlen(filename)-1);
-
-        if (strcmp(filename,"As")==0){
+        printf("%s dasda",filename);
+        if (strcmp(filename,"A")==0){
             memset(buffer,'\0',BUFFLEN);
             int ret = read(socketfd,buffer,BUFFLEN);
             if (ret == 0){

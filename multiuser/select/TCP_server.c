@@ -234,7 +234,6 @@ while (1){
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,path);
                         checkfolder(buffer);
-                        printf("In here");
                         writen(clientSocketfd,buffer,strlen(buffer));
                     }
                     else {
