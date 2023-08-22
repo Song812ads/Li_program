@@ -14,7 +14,7 @@
 #include <netinet/tcp.h>
 #include <dirent.h>
 #define BUFFLEN 1000
-#define MAX_CLIENTS 2
+#define MAX_CLIENTS 10
 
 void pipebroke()
 {
@@ -234,7 +234,7 @@ while (1){
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,path);
                         checkfolder(buffer);
-                        writen(clientSocketfd,buffer,strlen(buffer));
+                        writen(clientSocketfd[i],buffer,strlen(buffer));
                     }
                     else {
                     printf("File client want: %s\n",buffer);
