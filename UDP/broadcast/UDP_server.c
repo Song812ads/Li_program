@@ -185,7 +185,7 @@ while (1){
         }  
     }
 free(siz);
-// break;
+break;
 }
 
 
