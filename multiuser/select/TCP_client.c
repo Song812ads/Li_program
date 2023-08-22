@@ -166,10 +166,9 @@ int main(int argc, char **argv){
             close(socketfd);
             exit(1);
         }
-        writen(socketfd,filename,strlen(filename));
+        writen(socketfd,filename,strlen(filename)-1);
 
         if (strcmp(filename,"A")==0){
-            printf("In here");
             memset(buffer,'\0',BUFFLEN);
             int ret = read(socketfd,buffer,BUFFLEN);
             if (ret == 0){
