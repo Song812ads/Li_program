@@ -139,21 +139,17 @@ void checkfolder(unsigned char* buffer){
         strcat(buffer,dir->d_name);
         strcat(buffer,"     ");
         }
-        closedir(d);
     }
 }
 
 int checkfile(unsigned char* buffer){
     if (access(buffer, F_OK) == -1){
-        printf("File don't exist\n");
         return 0;
     }
     else if (access(buffer,R_OK) == -1){
-        printf("Cant read file\n");
         return 0;
     }
     else {
-        printf("File prepare to read\n");
         return 1;
     }
 }

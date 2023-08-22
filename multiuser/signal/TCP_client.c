@@ -142,11 +142,6 @@ int main(int argc, char **argv){
       close(socketfd);
       exit(EXIT_FAILURE);
     }
-    struct timeval tv;
-    tv.tv_sec = 20;
-    tv.tv_usec = 0;
-        if( setsockopt (socketfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv)) < 0 )
-        printf( "setsockopt fail\n" );
 
 
     if(fcntl(socketfd, F_SETFL, O_NONBLOCK|O_ASYNC)<0)
@@ -163,10 +158,8 @@ int main(int argc, char **argv){
         char *filename1 =  (char*)malloc(20*sizeof(char));
     while(1){
         printf("Nhap file muon tai: ");
-        if ((rdn = getline(&filename1,&len_file,stdin))==-1){
-            perror("Getline error");
-            break;
-        }
+        fgets(filename1,20,stdin);
+
         filename1[strlen(filename1)-1] = '\0';
         filename = filename1;
         if (strcmp(filename1,"Q")==0){
