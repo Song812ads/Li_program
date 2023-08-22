@@ -129,14 +129,9 @@ int main(int argc, char **argv){
         FD_ZERO(&readfds);
         FD_SET(socketfd,&readfds);
         while(1){
-        int ret = select(socketfd+1,&readfds,NULL,NULL,NULL);
-        if (ret < 0) 
-        {
-            printf("select error");
-            exit(1);
-        }
-        else if (ret>0){
-        printf("Client: %s\n", sock_ntop((struct sockaddr*)&serveradd,
+        select(socketfd+1,&readfds,NULL,NULL,NULL);
+
+        printf("From server: %s\n", sock_ntop((struct sockaddr*)&serveradd,
                                                 INET_ADDRSTRLEN));
             memset(buffer,'\0',BUFFLEN);           
             if (recvfrom(socketfd,buffer,BUFFLEN,0, 
@@ -144,8 +139,17 @@ int main(int argc, char **argv){
                 perror("Recv error");
                 exit(1);
             }
+            if (ret == 0){
+                printf("Server not response \n");
+                break;
+            }
+            else if (ret<0){
+                perror("Recv fail");
+                exit(1);
+            }
             if (strcmp(buffer,"Err")==0){
-                printf("File not exist");
+                printf("From server %s: File not exist\n", sock_ntop((struct sockaddr*)&serveradd,
+                                                INET_ADDRSTRLEN));
                 break;
             }
         else  {
@@ -154,12 +158,7 @@ int main(int argc, char **argv){
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
-            char size[10];
-            if ((recvfrom(socketfd,size,10,0,(struct sockaddr *)&serveradd, &serlen))<0){
-                perror("Recv error");
-                exit(1);
-            }
-            int ret = atol(size);
+ 
             writen(op,buffer,ret);
             if (ret==BUFFLEN){
             t++;
@@ -173,13 +172,14 @@ int main(int argc, char **argv){
             }
             else {
             close(op);
-            printf("Size from client: %ld\n",t*BUFFLEN+ret);
+            printf("Size from server %s: %ld\n",sock_ntop((struct sockaddr*)&serveradd,
+                                                INET_ADDRSTRLEN),t*BUFFLEN+ret);
             break;
             }
         }
         }
         }
-    }
+    
     free(buffer);
     return 0;
 }

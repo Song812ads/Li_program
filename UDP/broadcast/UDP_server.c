@@ -170,13 +170,6 @@ while (1){
                 exit(1);
             }
 
-            memset(buffer,'\0',BUFFLEN);
-            sprintf(buffer,"%ld",sz);
-            if ((sendto(serverSocketfd,buffer,sz,0, (struct sockaddr *) &clientadd, cli_ad_sz))<0){
-                perror("Send error1");
-                exit(1);
-            }
-
             if (sz < BUFFLEN){
                 printf("Client disconnect. Transmit: %ld\n",ti*BUFFLEN+sz);
                 close(serverSocketfd);
