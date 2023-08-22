@@ -175,8 +175,9 @@ int main(int argc, char **argv){
                 printf("Server disconnected");
                 exit(1);
             }
-            else if (ret>0){
+            else if (ret<0){
                 perror("Read fail");
+                exit(1);
             }
             printf("File available: %s\n",buffer);
         }
