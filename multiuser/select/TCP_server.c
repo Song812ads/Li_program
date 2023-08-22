@@ -216,6 +216,7 @@ while (1){
             sd = clientSocketfd[i];
             if (FD_ISSET(sd,&readfds)){
                 memset(buffer,'\0',BUFFLEN);
+                char* path = "/home/phuongnam/transmit/";
                 valread = read(sd,buffer,BUFFLEN);
                 if (valread==0){
                     printf("Host disconnected: %s\n",sock_ntop((struct sockaddr*)&clientadd,
@@ -231,15 +232,13 @@ while (1){
                 else{
                     if (strcmp(buffer,"A")==0){
                         memset(buffer,'\0',BUFFLEN);
-                        strcpy(buffer,"File");
-                        if (send(sd,buffer,BUFFLEN,0)<0){
-                            perror("Send error");
-                            exit(1);
-                        }
+                        strcpy(buffer,path);
+                        checkfolder(buffer);
+                        writen(clientSocketfd,buffer,strlen(buffer));
                     }
                     else {
                     printf("File client want: %s\n",buffer);
-                    char* path = "/home/phuongnam/transmit/";
+                    
                     size_t len = strlen(path);
                     char* path_buffer = malloc(len+strlen(buffer));
                     memset(path_buffer,'\0',sizeof(path_buffer));

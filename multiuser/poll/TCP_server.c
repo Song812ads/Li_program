@@ -16,7 +16,7 @@
 #include <poll.h>
 
 #define BUFFLEN 1000
-#define MAX_CLIENTS 2
+#define MAX_CLIENTS 10
 
 void pipebroke()
 {
@@ -204,9 +204,10 @@ while (1){
                 perror("Poll");
                 exit(1);
             }
-            else  (pollfds[i].revents & POLLIN){
+            else  if (pollfds[i].revents & POLLIN){
                     int sd = pollfds[i].fd;
                     memset(buffer,'\0',BUFFLEN);
+                    char* path = "/home/phuongnam/transmit/";
                     int val = recv(sd,buffer,BUFFLEN,0);
                     if (val==0){
                         printf("Client disconnected: %s\n", inet_ntoa(clientadd.sin_addr));
@@ -221,11 +222,9 @@ while (1){
                     else {
                     if (strcmp(buffer,"A")==0){
                         memset(buffer,'\0',BUFFLEN);
-                        strcpy(buffer,"File");
-                        if (send(sd,buffer,BUFFLEN,0)<0){
-                            perror("Send error");
-                            exit(1);
-                        }
+                        strcpy(buffer,path);
+                        checkfolder(buffer);
+                        writen(sd,buffer,strlen(buffer));
                     }
                     else {
                     printf("File client want: %s\n",buffer);
