@@ -171,7 +171,7 @@ int main(int argc, char **argv){
             close(op);
             printf("Size from server %s: %ld\n",sock_ntop((struct sockaddr*)&serveradd,
                                                 INET_ADDRSTRLEN),t*BUFFLEN+ret);
-            // break;
+            break;
             }
         }
         }

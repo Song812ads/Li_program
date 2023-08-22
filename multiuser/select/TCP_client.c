@@ -115,7 +115,7 @@ int main(int argc, char **argv){
     struct sockaddr_in serveradd;
     unsigned char *buffer = (unsigned char* )malloc((BUFFLEN+1) * sizeof(unsigned char));
     
-    if (argc!=4){
+    if (argc!=3){
         printf("Wrong type <server addresss> <server port>\n");
         exit(1);
     }
@@ -145,7 +145,7 @@ int main(int argc, char **argv){
     int maxfd;
     fd_set fset;
     while(1){ 
-        printf("Nhap file muon tai: \n");
+        // printf("Nhap file muon tai: \n");
         char filename[100];
         FD_ZERO(&fset);
         FD_SET(fileno(stdin),&fset);
