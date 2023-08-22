@@ -169,10 +169,11 @@ int main(int argc, char **argv){
         writen(socketfd,filename,strlen(filename));
 
         if (strcmp(filename,"A")==0){
+            printf("In here");
             memset(buffer,'\0',BUFFLEN);
             int ret = read(socketfd,buffer,BUFFLEN);
             if (ret == 0){
-                printf("Server disconnected");
+                printf("Server disconnected\n");
                 exit(1);
             }
             else if (ret<0){
