@@ -145,7 +145,7 @@ int main(int argc, char **argv){
     int maxfd;
     fd_set fset;
     while(1){ 
-        printf("Nhap file muon tai: \n");
+        printf("Nhap file muon tai: ");
         char filename[100];
         FD_ZERO(&fset);
         FD_SET(fileno(stdin),&fset);
