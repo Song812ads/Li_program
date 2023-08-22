@@ -168,7 +168,7 @@ int main(int argc, char **argv){
         }
         writen(socketfd,filename,strlen(filename)-1);
 
-        if (strcmp(filename,"A")==0){
+        if (strcmp(filename,"As")==0){
             memset(buffer,'\0',BUFFLEN);
             int ret = read(socketfd,buffer,BUFFLEN);
             if (ret == 0){
