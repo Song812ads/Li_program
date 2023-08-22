@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #define BUFFLEN 50000
-#define MAX_CLIENTS 1
+#define MAX_CLIENTS 5
 typedef enum {FIRST, AFTER} file_mode;
 
 void pipebroke()
@@ -120,7 +120,8 @@ int main(int argc, char **argv){
     }
     char filename[20];
     printf("Nhap file muon tai: ");
-    gets(filename);
+    fgets(filename,20,stdin);
+    filename[strlen(filename)-1] = '\0';
     if(sendto(socketfd,filename,strlen(filename),0, 
     (struct sockaddr *)&serveradd, sizeof(serveradd))<0) {
         perror("Send error");
@@ -134,14 +135,11 @@ int main(int argc, char **argv){
         printf("From server: %s\n", sock_ntop((struct sockaddr*)&serveradd,
                                                 INET_ADDRSTRLEN));
             memset(buffer,'\0',BUFFLEN);           
-            if (recvfrom(socketfd,buffer,BUFFLEN,0, 
-            (struct sockaddr *)&serveradd, &serlen)<0){
-                perror("Recv error");
-                exit(1);
-            }
+            ret = recvfrom(socketfd,buffer,BUFFLEN,0, 
+            (struct sockaddr *)&serveradd, &serlen);
             if (ret == 0){
                 printf("Server not response \n");
-                break;
+                // break;
             }
             else if (ret<0){
                 perror("Recv fail");
@@ -150,7 +148,7 @@ int main(int argc, char **argv){
             if (strcmp(buffer,"Err")==0){
                 printf("From server %s: File not exist\n", sock_ntop((struct sockaddr*)&serveradd,
                                                 INET_ADDRSTRLEN));
-                break;
+                // break;
             }
         else  {
             ssize_t t = 0;
@@ -158,7 +156,6 @@ int main(int argc, char **argv){
             int op = open(filename, O_RDWR | O_CREAT , 0644); 
             lseek(op,0,SEEK_SET);
         while (1){
- 
             writen(op,buffer,ret);
             if (ret==BUFFLEN){
             t++;
@@ -174,12 +171,10 @@ int main(int argc, char **argv){
             close(op);
             printf("Size from server %s: %ld\n",sock_ntop((struct sockaddr*)&serveradd,
                                                 INET_ADDRSTRLEN),t*BUFFLEN+ret);
-            break;
+            // break;
             }
         }
         }
         }
-    
-    free(buffer);
     return 0;
 }
