@@ -145,7 +145,7 @@ int main(int argc, char **argv){
     int maxfd;
     fd_set fset;
     while(1){ 
-        // printf("Nhap file muon tai: \n");
+        printf("Nhap file muon tai: \n");
         char filename[100];
         FD_ZERO(&fset);
         FD_SET(fileno(stdin),&fset);
@@ -154,7 +154,7 @@ int main(int argc, char **argv){
         select(maxfd+1,&fset,NULL,NULL,NULL);
         if (FD_ISSET(socketfd,&fset)){
             if (readline(socketfd,buffer,BUFFLEN)==0){
-                printf("Server disconnected");
+                printf("Server disconnected\n");
                 close(socketfd);
                 exit(1);
             }
