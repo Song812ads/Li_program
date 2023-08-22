@@ -238,7 +238,6 @@ while (1){
                     }
                     else {
                     printf("File client want: %s\n",buffer);
-                    
                     size_t len = strlen(path);
                     char* path_buffer = malloc(len+strlen(buffer));
                     memset(path_buffer,'\0',sizeof(path_buffer));

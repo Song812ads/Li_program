@@ -166,22 +166,21 @@ int main(int argc, char **argv){
             close(socketfd);
             exit(1);
         }
-        memset(buffer,'\0',BUFFLEN);
-        strcpy(buffer,filename);
-        if (send(socketfd,buffer,BUFFLEN,0)<0){
-            perror("Send error");
-            exit(1);
-        }
+        writen(socketfd,filename,strlen(filename));
 
         if (strcmp(filename,"A")==0){
             memset(buffer,'\0',BUFFLEN);
-            if (recv(socketfd,buffer,BUFFLEN,0)<0){
-                perror("Recv error");
+            int ret = read(socketfd,buffer,BUFFLEN);
+            if (ret == 0){
+                printf("Server disconnected");
                 exit(1);
+            }
+            else if (ret>0){
+                perror("Read fail");
             }
             printf("File available: %s\n",buffer);
         }
-    
+    else {
         int ret = 0;
         memset(buffer,'\0',BUFFLEN);
         if ((ret = recv(socketfd,buffer,BUFFLEN,0))<0){
@@ -212,7 +211,6 @@ int main(int argc, char **argv){
             }
             else {
             close(op);
-            // close(socketfd);
             printf("Size from client: %ld\n",t*BUFFLEN+ret);
             break;
             }
@@ -220,7 +218,7 @@ int main(int argc, char **argv){
         
         }
         // break;
-        }
+        }}
 }
     free(buffer);
     return 0;

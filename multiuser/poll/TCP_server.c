@@ -239,11 +239,7 @@ while (1){
                         printf("File dont exist\n");
                         memset(buffer,'\0',BUFFLEN);
                         strcpy(buffer,"Err");
-                        if (send(sd,buffer,strlen(buffer),0)<0){
-                            perror("Send error");
-                            break;
-                        }
-                    }
+                        writen(sd,buffer,strlen(buffer));
                     
                     else {
                         int op = open(path_buffer, O_RDONLY);
